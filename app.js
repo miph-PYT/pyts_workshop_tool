@@ -381,6 +381,14 @@ class App extends Component {
       return { workshops: [...s.workshops, { id, name, blocks: B }], activeId: id, editor: null };
     });
   }
+  deleteWorkshop(id) {
+    this.setState(s => {
+      const ws = s.workshops.filter(w => w.id !== id);
+      const runs = { ...s.runs }; delete runs[id];
+      const history = { ...(s.history || {}) }; delete history[id];
+      return { workshops: ws, activeId: ws.length ? ws[0].id : null, runs, history, editor: null, confirmDelete: null, screen: 'menu' };
+    });
+  }
   duplicateWorkshop(w) {
     const id = 'w' + Date.now();
     this.setState(s => ({ workshops: [...s.workshops, { id, name: w.name + ' (copy)', blocks: w.blocks.map(b => ({ ...b })) }] }));
@@ -459,12 +467,19 @@ class App extends Component {
                   <span class="muted" style="font-size: 15px; font-variant-numeric: tabular-nums;">${wb[0].start}–${fmtHM(toMin(wb[0].start) + tot)} · ${wb.length} blocks · ${tot} min</span>
                   ${last ? html`<span class="muted" style="font-size: 14px;">${last}</span>` : null}
                 </div>
+                ${s.confirmDelete === w.id ? html`
+                <div role="alert" style="flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--color-accent-100);">
+                  <span style="flex: 1 1 240px; font-size: 15px; color: var(--color-accent-800);">Delete “${w.name}”?${h.length ? ' Its ' + h.length + ' saved energy curve' + (h.length > 1 ? 's go' : ' goes') + ' too.' : ''} This can’t be undone.</span>
+                  <button class="btn btn-secondary" style="height: 44px;" onClick=${() => this.setState({ confirmDelete: null })}>Cancel</button>
+                  <button class="btn" style="height: 44px; background: var(--color-accent-700); color: #fff;" onClick=${() => this.deleteWorkshop(w.id)}>Yes, delete</button>
+                </div>` : html`
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);">
+                  <button class="btn btn-ghost" style="height: 48px; color: var(--color-accent-700);" aria-label=${'Delete ' + w.name} onClick=${() => this.setState({ confirmDelete: w.id })}>Delete</button>
                   <button class="btn btn-ghost" style="height: 48px;" aria-label=${'Edit ' + w.name} onClick=${() => this.openEditor(w)}>Edit</button>
                   <button class="btn btn-ghost" style="height: 48px;" aria-label=${'Duplicate ' + w.name} onClick=${() => this.duplicateWorkshop(w)}>Duplicate</button>
                   ${h.length ? html`<button class="btn btn-ghost" style="height: 48px;" aria-label=${'Energy curves for ' + w.name} onClick=${() => this.setState({ activeId: w.id, review: { sel: '0' }, copyText: '', copyMsg: '' })}>Energy curves</button>` : null}
                   <button class="btn btn-primary" style="min-width: 120px; height: 48px; font-size: 16px;" aria-label=${'Open ' + w.name} onClick=${open}>${inProgress ? 'Resume' : 'Open'}</button>
-                </div>
+                </div>`}
               </div>`;
           })}
         </div>
@@ -900,7 +915,13 @@ class App extends Component {
 
           <span style=${'font-size: 14px; font-weight: 600; color: ' + infoColor}>${info}</span>
           <div class="dialog-actions" style="flex-wrap: wrap; align-items: center; gap: var(--space-3);">
-            ${canDelete ? html`<button class="btn btn-ghost" style="color: var(--color-accent-700); margin-right: auto;" onClick=${() => { if (!confirm('Delete “' + ed.name + '”? Its saved energy curves go too.')) return; this.setState(s => { const ws = s.workshops.filter(w => w.id !== ed.id); const runs = { ...s.runs }; delete runs[ed.id]; const history = { ...s.history }; delete history[ed.id]; return { workshops: ws, activeId: ws.length ? ws[0].id : null, runs, history, editor: null, screen: 'menu' }; }); }}>Delete workshop</button>` : null}
+            ${canDelete && !ed.confirmDel ? html`<button class="btn btn-ghost" style="color: var(--color-accent-700); margin-right: auto;" onClick=${() => this.updEditor({ confirmDel: true })}>Delete workshop</button>` : null}
+            ${canDelete && ed.confirmDel ? html`
+              <span role="alert" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-right: auto; padding: 6px 6px 6px 14px; border-radius: 999px; background: var(--color-accent-100); color: var(--color-accent-800); font-size: 14px;">
+                Delete this workshop?
+                <button class="btn btn-secondary" style="height: 36px;" onClick=${() => this.updEditor({ confirmDel: false })}>Cancel</button>
+                <button class="btn" style="height: 36px; background: var(--color-accent-700); color: #fff;" onClick=${() => this.deleteWorkshop(ed.id)}>Yes, delete</button>
+              </span>` : null}
             <button class="btn btn-ghost" style="margin-left: auto;" onClick=${() => this.setState({ editor: null })}>Cancel</button>
             <button class="btn btn-primary" disabled=${!B.length} onClick=${() => this.saveEditor()}>Save</button>
           </div>
