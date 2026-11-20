@@ -663,7 +663,7 @@ class App extends Component {
 
     return html`
       <div style="display: flex; justify-content: flex-end; padding: 6px var(--space-6) 0;">
-        <a href=${SITE} target="_blank" rel="noopener" title="Workshop timer by Philipp Mitterhofer" style="font-size: 12px; color: var(--color-neutral-600); text-decoration: none; letter-spacing: 0.02em;">© parts-work.dk</a>
+        <a href=${SITE} target="_blank" rel="noopener" title="Workshop timer by Philipp Mitterhofer" style="font-size: 12px; font-family: var(--font-display); font-weight: 800; color: var(--pw-rose); text-decoration: none; letter-spacing: 0.02em;">© parts-work.dk</a>
       </div>
       <header class="nav" style="flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-6);">
         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); min-width: 0;">
