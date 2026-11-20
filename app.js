@@ -127,6 +127,36 @@ function rowsToBlocks(start, rows) {
 }
 const blocksToRows = blocks => blocks.map(b => newRow(b.min, b.title, b.note || ''));
 
+
+/* Animated illustration at the top of the menu: the parts from the parts-work.dk logo float behind
+   a timer ring that fills while an energy curve draws itself. Pure SVG + CSS (see app.css, .hero-art). */
+const BLOBS = [
+  ['#46998d', 'M185.2 77.9 Q186.9 82.4 185.5 87.1 Q184.1 91.8 179.8 94.7 Q175.6 97.6 170.8 95.9 Q166.1 94.2 163.0 90.6 Q159.9 87.1 159.1 82.1 Q158.3 77.1 162.0 73.4 Q165.6 69.8 170.5 69.2 Q175.3 68.7 179.4 71.1 Q183.5 73.5 185.2 77.9Z'],
+  ['#e8d4f0', 'M174.5 88.8 Q176.5 93.1 174.8 97.6 Q173.2 102.2 169.1 105.5 Q165.1 108.8 160.1 107.2 Q155.1 105.6 152.3 101.7 Q149.5 97.7 148.8 92.8 Q148.1 87.9 151.4 83.9 Q154.7 79.9 159.8 79.4 Q164.8 78.9 168.7 81.7 Q172.6 84.5 174.5 88.8Z'],
+  ['#e0faff', 'M149.8 86.4 Q151.2 89.6 150.0 92.9 Q148.8 96.3 145.9 98.7 Q142.9 101.1 139.2 99.9 Q135.6 98.7 133.5 95.8 Q131.5 93.0 130.9 89.4 Q130.3 85.8 132.8 82.8 Q135.3 79.9 139.0 79.6 Q142.7 79.2 145.5 81.2 Q148.4 83.2 149.8 86.4Z'],
+  ['#d4a33a', 'M151.2 62.8 Q154.4 69.0 151.0 74.9 Q147.5 80.9 142.0 83.9 Q136.5 86.9 130.0 86.4 Q123.5 85.9 118.8 80.9 Q114.2 75.9 115.0 69.3 Q115.8 62.6 120.1 58.1 Q124.4 53.5 130.6 51.0 Q136.9 48.5 142.5 52.5 Q148.0 56.6 151.2 62.8Z'],
+  ['#dcb2bd', 'M164.4 47.9 Q165.6 51.0 164.5 54.2 Q163.3 57.3 160.4 58.7 Q157.4 60.2 154.4 59.4 Q151.4 58.6 149.0 56.5 Q146.6 54.4 146.5 51.0 Q146.4 47.6 148.9 45.5 Q151.5 43.5 154.4 42.6 Q157.4 41.8 160.3 43.3 Q163.3 44.8 164.4 47.9Z'],
+  ['#5fb3a5', 'M199.3 56.4 Q200.7 59.2 199.2 61.9 Q197.6 64.6 195.1 66.0 Q192.6 67.4 189.6 67.1 Q186.7 66.9 184.5 64.6 Q182.4 62.4 182.8 59.3 Q183.1 56.3 185.1 54.2 Q187.1 52.2 189.9 51.0 Q192.8 49.9 195.3 51.7 Q197.8 53.5 199.3 56.4Z'],
+];
+const CURVE_DOTS = [[52, 222, 3], [118, 200, 4], [184, 230, 2], [250, 196, 4], [316, 178, 5]];
+const HeroArt = () => html`
+  <svg class="hero-art" viewBox="0 0 360 260" role="img" aria-label="Illustration: a timer ring filling up above a rising energy curve">
+    <g class="blobs" transform="translate(-258 -112) scale(2.8)">
+      ${BLOBS.map(([c, d], i) => html`<path class=${'blob b' + i} d=${d} fill=${c}></path>`)}
+    </g>
+    <g transform="translate(180 98)">
+      <circle r="64" fill="#1a524c" fill-opacity="0.72"></circle>
+      <circle r="64" fill="none" stroke="rgba(224,250,255,0.18)" stroke-width="11"></circle>
+      <circle class="ring" r="64" fill="none" stroke="#e8d4f0" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90)"></circle>
+      <g class="hand"><circle cy="-64" r="9" fill="#e0faff"></circle></g>
+      <g class="ticks" fill="#cfeee9">
+        <rect x="-16" y="-3" width="9" height="6" rx="3"></rect><rect x="-3" y="-3" width="6" height="6" rx="3"></rect><rect x="7" y="-3" width="9" height="6" rx="3"></rect>
+      </g>
+    </g>
+    <path class="curve" d="M52 222 C 85 222, 85 200, 118 200 S 151 230, 184 230 S 217 196, 250 196 S 283 178, 316 178" fill="none" stroke="#e0faff" stroke-width="3.5" stroke-linecap="round" pathLength="1"></path>
+    ${CURVE_DOTS.map(([x, y, v], i) => html`<circle class=${'dot d' + i} cx=${x} cy=${y} r="8" fill=${LV[v].color} stroke="#1f5f58" stroke-width="3"></circle>`)}
+  </svg>`;
+
 /* ------------------------------------------------------------------ */
 /* The app                                                            */
 /* ------------------------------------------------------------------ */
@@ -448,12 +478,13 @@ class App extends Component {
             <a href=${SITE} target="_blank" rel="noopener" class="btn btn-secondary" style="height: 40px;">Visit parts-work.dk ↗</a>
           </span>
         </nav>
-        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);">
-          <div>
-            <h1 style="margin: 0 0 4px; font-size: clamp(32px, 5vw, 48px); line-height: 1.05;">Workshop timer</h1>
-            <p style="margin: 0; font-size: 17px; max-width: 34em; text-wrap: pretty;">A calm timer for running a workshop live. Plan your blocks, keep time without staring at the clock, sense how the room is doing, and look back afterwards at what worked.</p>
+        <div class="hero">
+          <div class="hero-text">
+            <h1 style="margin: 0; font-size: clamp(38px, 6vw, 58px); line-height: 1.05;">Workshop timer</h1>
+            <p style="margin: 0; font-size: 17px; max-width: 30em; text-wrap: pretty;">A calm timer for running a workshop live. Plan your blocks, keep time without staring at the clock, sense how the room is doing, and look back afterwards at what worked.</p>
+            <button class="btn btn-primary" onClick=${() => this.openEditor(null)} style="align-self: flex-start; height: 48px; font-size: 16px; padding-inline: 22px;">New workshop</button>
           </div>
-          <button class="btn btn-primary" onClick=${() => this.openEditor(null)} style="height: 48px; font-size: 16px;">New workshop</button>
+          ${HeroArt()}
         </div>
         <details open=${!this.state.introHidden} onToggle=${e => { const hidden = !e.target.open; if (hidden !== !!this.state.introHidden) this.setState({ introHidden: hidden }); }}
           style="border-radius: var(--radius-lg); background: var(--color-neutral-100); padding: var(--space-4) var(--space-6);">

@@ -38,3 +38,49 @@ button { font: inherit; }
 :root { color-scheme: dark; }
 .input::placeholder { color: var(--color-neutral-600); opacity: 1; }
 select.input option { background: var(--color-surface); color: var(--color-text); }
+
+/* Menu hero + animated illustration */
+.hero { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-8); }
+.hero-text { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.hero-art { flex: 0 1 340px; width: 100%; max-width: 340px; height: auto; overflow: visible; margin-inline: auto; }
+
+.hero-art .blob { transform-box: fill-box; transform-origin: center; opacity: 0.9; animation: blob-float 9s ease-in-out infinite alternate; }
+.hero-art .b1 { animation-duration: 11s; animation-delay: -2s; }
+.hero-art .b2 { animation-duration: 8s; animation-delay: -5s; }
+.hero-art .b3 { animation-duration: 12s; animation-delay: -1s; }
+.hero-art .b4 { animation-duration: 7s; animation-delay: -3s; }
+.hero-art .b5 { animation-duration: 10s; animation-delay: -6s; }
+@keyframes blob-float {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate(3px, -4px) rotate(6deg) scale(1.06); }
+  100% { transform: translate(-3px, 3px) rotate(-5deg) scale(0.96); }
+}
+
+/* One 10-second cycle: the ring fills, the curve draws, dots pop in, then everything resets softly */
+.hero-art .ring { stroke-dasharray: 100; animation: ring-fill 10s linear infinite; }
+@keyframes ring-fill { 0% { stroke-dashoffset: 100; } 88% { stroke-dashoffset: 0; opacity: 1; } 96% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 100; opacity: 0; } }
+.hero-art .hand { animation: hand-turn 10s linear infinite; }
+@keyframes hand-turn { 0% { transform: rotate(0deg); opacity: 1; } 88% { transform: rotate(360deg); opacity: 1; } 96% { transform: rotate(360deg); opacity: 0; } 100% { transform: rotate(360deg); opacity: 0; } }
+.hero-art .ticks rect { animation: tick 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.hero-art .ticks rect:nth-child(2) { animation-delay: 0.2s; }
+.hero-art .ticks rect:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tick { 0%, 100% { opacity: 0.45; transform: scaleY(1); } 50% { opacity: 1; transform: scaleY(1.5); } }
+
+.hero-art .curve { stroke-dasharray: 1; animation: curve-draw 10s ease-in-out infinite; }
+@keyframes curve-draw { 0%, 8% { stroke-dashoffset: 1; opacity: 1; } 70%, 88% { stroke-dashoffset: 0; opacity: 1; } 96%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+.hero-art .dot { transform-box: fill-box; transform-origin: center; animation: dot-pop 10s ease-out infinite; }
+.hero-art .d1 { animation-name: dot-pop-1; } .hero-art .d2 { animation-name: dot-pop-2; }
+.hero-art .d3 { animation-name: dot-pop-3; } .hero-art .d4 { animation-name: dot-pop-4; }
+@keyframes dot-pop   { 0%, 9%  { transform: scale(0); } 13% { transform: scale(1.25); } 16%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
+@keyframes dot-pop-1 { 0%, 22% { transform: scale(0); } 26% { transform: scale(1.25); } 29%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
+@keyframes dot-pop-2 { 0%, 37% { transform: scale(0); } 41% { transform: scale(1.25); } 44%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
+@keyframes dot-pop-3 { 0%, 52% { transform: scale(0); } 56% { transform: scale(1.25); } 59%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
+@keyframes dot-pop-4 { 0%, 67% { transform: scale(0); } 71% { transform: scale(1.25); } 74%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
+
+/* Respect "reduce motion": show the finished picture, no movement */
+@media (prefers-reduced-motion: reduce) {
+  .hero-art * { animation: none !important; }
+  .hero-art .ring { stroke-dashoffset: 30; }
+  .hero-art .curve { stroke-dashoffset: 0; }
+}
+@media (max-width: 560px) { .hero-art { max-width: 260px; } }
