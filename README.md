@@ -1,0 +1,59 @@
+# Workshop timer
+
+A live timer for running workshop schedules. Pick a workshop, run it block by block, rate how the room feels as you go, and get an energy curve at the end.
+
+It's plain HTML, CSS and JavaScript: no build step, no server, no accounts, no AI. Open `index.html` or host the folder anywhere (GitHub Pages works out of the box).
+
+## Using it
+
+**Menu.** Every workshop you've made is listed here: **Open** (or **Resume**), **Edit**, **Duplicate**, and **Energy curves** once you have saved sessions. **New workshop** makes a new one.
+
+**Editing a workshop.** Two ways:
+- **Table**: set the start time, then add blocks with minutes, title and an optional note. Each block starts when the one before ends; ↑ ↓ reorder, ✕ removes. Put breaks in as their own blocks.
+- **Paste text**: paste a schedule straight from a doc (time range, minutes, title, note, one per line). Switch back to **Table** to check what was found.
+
+A title like `Scene 1: play 20, integrate 15` gets sub-timers inside the block (the numbers have to add up to the block's minutes). You can also paste a schedule anywhere on the menu to start a new workshop from it.
+
+**Two timing modes** (switch at the top of the timer):
+- **Facilitator**: you start, pause and move on yourself. Space = start/pause, ← → = previous/next block, +1 min extends the current block.
+- **Follow clock**: blocks advance with the time of day, and you can bend the plan live:
+  - **Start now** / **Begin from now** moves the whole day to start when you actually begin.
+  - **Move on now** (or →) ends this block and pulls everything after it forward or back.
+  - **+5 / −5 min** stretches or shrinks this block; everything after shifts.
+  - **Catch up** (shown when you're behind) trims the blocks still to come, each by at most half, to land closer to the planned end.
+  - **Back to plan** undoes today's changes.
+
+**Rating the room.** Tap 1–5 (Flat, Low, Steady, Warm, Alive), or press 1–5 on the keyboard, whenever you sense the vibe. Add a quick note if you like.
+
+**Energy curve.** Shows the curve over the blocks with start times, what lit up (4–5), what fell flat (1–2), planned vs actual minutes, and **Copy summary** for pasting into notes. **Save to history & start fresh** keeps the session for comparing later. A session is also saved automatically when you reset, or when you open a workshop on a new day.
+
+## Your data
+
+Everything is stored in your browser's local storage on that device only. Use **Back up** on the menu to download a `.json` file and **Restore from file** to load it on another device or browser. Clearing your browser's site data deletes it, so back up now and then.
+
+## Putting it online with GitHub Pages
+
+1. On GitHub, open the repository → **Settings** → **Pages**.
+2. Under **Build and deployment**, choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
+3. After a minute the site is live at `https://miph-pyt.github.io/pyts_workshop_tool/`.
+
+To use your own domain, add it under **Custom domain** on the same page.
+
+## Changing things
+
+| File | What's in it |
+| --- | --- |
+| `index.html` | The page shell |
+| `app.js` | All the behaviour. Settings at the top: `CHIME`, `DEFAULT_MODE`, the energy labels and colours (`LV`), and the example workshop (`SEED`) |
+| `app.css` | Styles specific to this app |
+| `organic.css` | The colour, font and component styles (Organic design system). Change the colours at the top of this file |
+| `vendor/htm-preact.js` | Preact + htm (MIT licence), included so the app needs no internet or build tools |
+| `google-sheets/` | The earlier Google Sheets version of the timer |
+
+To try changes locally, run a small web server in the folder (opening `index.html` directly may not load the scripts in some browsers):
+
+```
+python3 -m http.server 8000
+```
+
+Then open http://localhost:8000.

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 4px 2px; font-family: Figtree, system-ui, sans-serif; color: #201e1d; background: #f5ead8; }
+  label { display: block; font-weight: 600; font-size: 14px; margin: 0 0 6px; }
+  input, textarea { box-sizing: border-box; width: 100%; font: inherit; font-size: 14px; color: #201e1d; background: #f9f4ed; border: 2px solid #dcd3c4; padding: 10px 14px; }
+  input { border-radius: 999px; height: 42px; margin-bottom: 14px; }
+  textarea { border-radius: 16px; height: 250px; resize: none; line-height: 1.45; }
+  input:focus, textarea:focus { outline: 2px solid #c67139; outline-offset: 2px; border-color: #c67139; }
+  .hint { font-size: 12px; color: #645c50; margin: 6px 0 10px; }
+  #info { font-size: 13px; font-weight: 600; color: #645c50; min-height: 18px; }
+  #info.ok { color: #3d472b; }
+  #rows { font-size: 12px; color: #645c50; max-height: 70px; overflow: auto; margin: 4px 0 0; white-space: pre; font-variant-numeric: tabular-nums; }
+  .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+  button { font: inherit; font-weight: 600; font-size: 14px; height: 44px; padding: 0 22px; border-radius: 999px; border: 0; cursor: pointer; }
+  .primary { background: #c67139; color: #201e1d; } .primary:hover { background: #b2622d; } .primary:disabled { opacity: .45; cursor: default; }
+  .ghost { background: transparent; color: #201e1d; } .ghost:hover { background: #ebddc5; }
+  button:focus-visible { outline: 2px solid #c67139; outline-offset: 2px; }
+</style>
+</head>
+<body>
+  <label for="name">Workshop name</label>
+  <input id="name" placeholder="Taken from the first line if left empty">
+  <label for="text">Schedule</label>
+  <textarea id="text" placeholder="Paste straight from your doc, e.g.&#10;13:00–13:20&#10;20&#10;Communal landing and frame&#10;Agreements, the thesis…&#10;13:20–13:55&#10;35&#10;Come. Stop. Stay."></textarea>
+  <div class="hint">Times start each block; minutes, title and note can follow on the same line or the next ones. Gaps and overlaps are kept and highlighted.</div>
+  <div id="info"></div>
+  <div id="rows"></div>
+  <div class="actions">
+    <button class="ghost" onclick="google.script.host.close()">Cancel</button>
+    <button class="primary" id="go" disabled>Create tab</button>
+  </div>
+<script>
+  const $ = id => document.getElementById(id);
+  let t, autoName = '';
+  $('text').addEventListener('input', () => { clearTimeout(t); t = setTimeout(preview, 300); });
+  function preview() {
+    google.script.run.withSuccessHandler(p => {
+      $('info').textContent = p.info; $('info').className = p.ok ? 'ok' : '';
+      $('rows').textContent = p.ok ? p.rows.join('\n') : '';
+      $('go').disabled = !p.ok;
+      if (p.name && (!$('name').value || $('name').value === autoName)) { $('name').value = autoName = p.name; }
+    }).previewText($('text').value);
+  }
+  $('go').onclick = () => {
+    $('go').disabled = true; $('go').textContent = 'Building…';
+    google.script.run
+      .withSuccessHandler(() => { google.script.run.withSuccessHandler(() => google.script.host.close()).showSidebar(); })
+      .withFailureHandler(e => { $('info').textContent = e.message; $('go').disabled = false; $('go').textContent = 'Create tab'; })
+      .createFromText($('name').value.trim(), $('text').value);
+  };
+  $('text').focus();
+</script>
+</body>
+</html>

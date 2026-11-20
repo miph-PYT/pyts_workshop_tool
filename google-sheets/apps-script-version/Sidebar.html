@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 14px; font-family: Figtree, system-ui, sans-serif; color: #201e1d; background: #f5ead8; font-size: 14px; }
+  select { width: 100%; height: 44px; border-radius: 999px; border: 2px solid #dcd3c4; background: #f9f4ed; font: inherit; font-weight: 600; padding: 0 14px; color: #201e1d; }
+  .seg { display: flex; background: #ebddc5; border-radius: 999px; padding: 4px; margin: 10px 0 14px; }
+  .seg button { flex: 1; height: 36px; border: 0; border-radius: 999px; background: transparent; font: inherit; font-weight: 600; cursor: pointer; color: #645c50; }
+  .seg button.on { background: #f5ead8; color: #201e1d; box-shadow: 0 1px 3px rgba(32,30,29,.15); }
+  .card { background: #ebddc5; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #f9f4ed; color: #474238; }
+  .tag.a { background: #ffe1d0; color: #643312; } .tag.s { background: #e1eecc; color: #3d472b; }
+  h1 { font-family: Caprasimo, serif; font-weight: 400; font-size: 24px; line-height: 1.1; margin: 0; }
+  .note { margin: 0; color: #645c50; }
+  .ring { position: relative; width: 190px; height: 190px; margin: 4px auto; }
+  .ring svg { transform: rotate(-90deg); display: block; }
+  .ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .big { font-family: Caprasimo, serif; font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .cap { font-size: 12px; color: #645c50; }
+  .label { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: #645c50; }
+  .phases { display: flex; gap: 6px; } .ph { min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+  .bar { height: 10px; border-radius: 999px; background: #dcd3c4; overflow: hidden; } .bar i { display: block; height: 100%; background: #7a8a5e; border-radius: 999px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  button.b { height: 44px; padding: 0 16px; border-radius: 999px; border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+  .p { background: #c67139; color: #201e1d; flex: 1 1 100%; font-size: 16px; } .p:hover { background: #b2622d; }
+  .s { background: #f5ead8; color: #201e1d; flex: 1; } .s:hover { background: #f9f4ed; }
+  .g { background: transparent; color: #201e1d; } .g:hover { background: #dcd3c4; }
+  button:focus-visible, select:focus-visible { outline: 2px solid #c67139; outline-offset: 2px; }
+  .warn { margin-top: 12px; padding: 10px 14px; border-radius: 16px; background: #ffc6a5; color: #643312; font-weight: 600; font-size: 13px; }
+  .list { margin-top: 14px; display: flex; flex-direction: column; gap: 2px; }
+  .row { display: grid; grid-template-columns: 44px minmax(0,1fr) 30px; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 14px; cursor: pointer; border: 0; background: transparent; text-align: left; font: inherit; color: inherit; }
+  .row:hover { background: #ebddc5; } .row.cur { background: #ebddc5; font-weight: 700; } .row.past { opacity: .5; }
+  .row .t { font-variant-numeric: tabular-nums; font-size: 12px; color: #645c50; }
+  .row .m { font-size: 12px; text-align: right; color: #645c50; }
+  .row.bad .t { color: #8c491a; font-weight: 700; }
+  .empty { padding: 20px 4px; color: #645c50; }
+</style>
+</head>
+<body>
+<div id="app"><div class="empty">Loading…</div></div>
+<script>
+const C = 2 * Math.PI * 80;
+let S = null, st = null, mode = localStorage.getItem('wt-mode') || 'manual', lastKey = null, ac = null;
+const toMin = s => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
+const fmtHM = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const fmtMS = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const key = () => 'wt-run-' + (S && S.name);
+const loadRun = () => { try { st = Object.assign({ idx: 0, acc: 0, startedAt: null }, JSON.parse(localStorage.getItem(key()) || '{}')); } catch (e) { st = { idx: 0, acc: 0, startedAt: null }; } };
+const saveRun = () => localStorage.setItem(key(), JSON.stringify(st));
+const phasesOf = b => b.phases ? b.phases.split(',').map(p => { const m = p.trim().match(/^(.*?)\s+(\d+)$/); return m ? [m[1], +m[2]] : null; }).filter(Boolean) : null;
+
+function load(data) {
+  const prev = S && S.name; S = data;
+  if (S.ok && S.name !== prev) { loadRun(); lastKey = null; }
+  render();
+}
+function refresh() { google.script.run.withSuccessHandler(load).getSchedule(); }
+
+function elapsed() { return st.acc + (st.startedAt ? Date.now() - st.startedAt : 0); }
+function snapshot() {
+  const B = S.blocks, d = new Date(), now = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+  if (mode === 'clock') {
+    const first = toMin(B[0].start), lastEnd = toMin(B[B.length - 1].end) + (toMin(B[B.length - 1].end) < first ? 1440 : 0);
+    if (now < first) return { idx: 0, el: 0, total: B[0].min * 60000, pre: (first - now) * 60000, key: 'pre' };
+    if (now >= lastEnd) return { idx: B.length, key: 'done' };
+    let idx = B.findIndex(b => now >= toMin(b.start) && now < toMin(b.start) + b.min);
+    if (idx < 0) idx = B.findIndex(b => toMin(b.start) > now) ; // in a gap: show next block
+    const b = B[idx], el = Math.max(0, (now - toMin(b.start)) * 60000);
+    return { idx, el, total: b.min * 60000, pre: now < toMin(b.start) ? (toMin(b.start) - now) * 60000 : null, key: idx + ':' + phaseIdx(b, el) };
+  }
+  const idx = Math.min(st.idx, B.length);
+  if (idx >= B.length) return { idx, key: 'done' };
+  const el = elapsed(), total = B[idx].min * 60000;
+  return { idx, el, total, key: idx + ':' + (el >= total ? 'over' : phaseIdx(B[idx], el)) };
+}
+function phaseIdx(b, el) { const ps = phasesOf(b); if (!ps) return 0; let t = 0; for (let i = 0; i < ps.length; i++) { t += ps[i][1] * 60000; if (el < t) return i; } return ps.length - 1; }
+
+function chime(n) {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    for (let k = 0; k < n; k++) { const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + k * .35; o.frequency.value = 660;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 1.3); }
+  } catch (e) {}
+}
+
+function go(i) {
+  const B = S.blocks; if (i < 0 || i > B.length) return;
+  const old = st.idx, from = old < B.length ? B[old].row : null;
+  const wasRunning = !!st.startedAt;
+  st = { idx: i, acc: 0, startedAt: wasRunning && i < B.length ? Date.now() : null }; saveRun(); lastKey = null;
+  if (wasRunning) google.script.run.markLive(S.name, i < B.length ? B[i].row : null, i > old ? from : null);
+  render();
+}
+function toggle() {
+  const B = S.blocks;
+  if (st.idx >= B.length) return go(0);
+  if (st.startedAt) { st.acc += Date.now() - st.startedAt; st.startedAt = null; }
+  else { st.startedAt = Date.now(); google.script.run.markLive(S.name, B[st.idx].row, null); }
+  saveRun(); lastKey = null; render();
+}
+function reset() { st = { idx: 0, acc: 0, startedAt: null }; saveRun(); lastKey = null; render(); }
+function plusOne() { const b = S.blocks[st.idx]; if (b) google.script.run.withSuccessHandler(load).addMinute(S.name, b.row); }
+function setMode(m) { mode = m; localStorage.setItem('wt-mode', m); lastKey = null; render(); }
+function pickTab(n) { google.script.run.withSuccessHandler(load).openTab(n); }
+
+function render() {
+  const app = document.getElementById('app');
+  if (!S) return;
+  const tabSel = S.tabs.length ? '<select onchange="pickTab(this.value)">' + (S.ok ? '' : '<option>Choose a workshop…</option>') + S.tabs.map(t => '<option' + (t === S.name ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select>' : '';
+  if (!S.ok || !S.blocks.length) { app.innerHTML = tabSel + '<div class="empty">' + (S.tabs.length ? 'Pick a workshop tab above.' : 'No workshops yet. Use <b>Workshop timer → New workshop from pasted schedule…</b>') + '</div>'; return; }
+  const B = S.blocks, manual = mode === 'manual', snap = snapshot(), idx = snap.idx, done = idx >= B.length, b = B[Math.min(idx, B.length - 1)];
+  if (lastKey && snap.key !== lastKey) chime(snap.key.endsWith('over') ? 2 : 1);
+  lastKey = snap.key;
+  const running = !!st.startedAt;
+  let big, cap, off = C, ring = '#c67139', col = '#201e1d';
+  if (done) { big = '✓'; cap = 'Workshop complete'; off = 0; ring = '#7a8a5e'; }
+  else if (snap.pre != null) { big = fmtMS(snap.pre); cap = 'until start'; }
+  else { const rem = snap.total - snap.el; off = C * (1 - Math.min(1, snap.el / snap.total));
+    if (rem < 0) { big = '+' + fmtMS(-rem); cap = 'over time'; ring = col = '#8c491a'; } else { big = fmtMS(rem); cap = manual && !running ? (snap.el ? 'paused' : 'ready') : 'remaining'; } }
+  let phaseHtml = '';
+  const ps = !done && phasesOf(b);
+  if (ps && snap.pre == null) {
+    const el = snap.el || 0, pi = phaseIdx(b, el); let t = 0;
+    const bars = ps.map(([l, m], i) => { const pct = Math.max(0, Math.min(1, (el - t) / (m * 60000))) * 100; t += m * 60000; return '<div class="ph" style="flex:' + m + ' 1 0"><div class="bar"><i style="width:' + pct + '%"></i></div><span style="font-weight:' + (i === pi ? 700 : 400) + '">' + esc(l) + ' · ' + m + '</span></div>'; }).join('');
+    const left = ps.slice(0, pi + 1).reduce((a, p) => a + p[1], 0) * 60000 - el;
+    phaseHtml = '<div><div class="label">Inside this block</div><div class="phases" style="margin:6px 0">' + bars + '</div><span style="color:#3d472b;font-weight:600">' + esc(ps[pi][0]) + ' · ' + (left > 0 ? fmtMS(left) + ' left' : 'time’s up') + '</span></div>';
+  }
+  let drift = '';
+  if (manual && !done && (running || snap.el > 0 || idx > 0)) {
+    const d = new Date(), now = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+    let rest = Math.max(0, snap.total - snap.el); for (let i = idx + 1; i < B.length; i++) rest += B[i].min * 60000;
+    const proj = now + rest / 60000, plan = toMin(S.target || B[B.length - 1].end), diff = Math.round(((proj - plan) % 1440 + 2160) % 1440 - 720);
+    drift = '<span class="tag s">Ends ~' + fmtHM(proj) + (diff > 0 ? ' · ' + diff + ' min late' : diff < 0 ? ' · ' + -diff + ' min early' : ' · on time') + '</span>';
+  }
+  const next = !done && B[idx + 1];
+  const bad = B.filter(x => x.status && x.status !== 'OK');
+  app.innerHTML = tabSel +
+    '<div class="seg"><button class="' + (manual ? 'on' : '') + '" onclick="setMode(\'manual\')">Facilitator</button><button class="' + (manual ? '' : 'on') + '" onclick="setMode(\'clock\')">Follow clock</button></div>' +
+    '<div class="card">' +
+      '<div class="tags"><span class="tag a">' + (done ? 'Finished' : 'Block ' + (idx + 1) + ' of ' + B.length) + '</span><span class="tag">' + esc(b.start) + '–' + esc(b.end) + ' · ' + b.min + ' min</span>' + drift + '</div>' +
+      '<h1>' + esc(done ? 'That’s a wrap' : b.title) + '</h1>' + (done ? '' : b.note ? '<p class="note">' + esc(b.note) + '</p>' : '') +
+      '<div class="ring"><svg width="190" height="190" viewBox="0 0 190 190"><circle cx="95" cy="95" r="80" fill="none" stroke="#dcd3c4" stroke-width="16"/><circle cx="95" cy="95" r="80" fill="none" stroke="' + ring + '" stroke-width="16" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + off + '"/></svg><div class="mid"><span class="big" style="color:' + col + '">' + big + '</span><span class="cap">' + cap + '</span></div></div>' +
+      phaseHtml +
+      (next ? '<div><div class="label">Up next</div><div style="font-weight:600;font-size:15px">' + esc(next.title) + '</div></div>' : '') +
+      (manual ? '<div class="btns"><button class="b p" onclick="toggle()">' + (done ? 'Start over' : running ? 'Pause' : snap.el ? 'Resume' : 'Start') + '</button><button class="b s" onclick="go(st.idx+1)">Next</button><button class="b g" onclick="go(st.idx-1)">Back</button><button class="b g" onclick="plusOne()" title="Adds a minute in the sheet — later blocks shift">+1 min</button><button class="b g" onclick="reset()">Reset</button></div>' : '<p class="note" style="font-size:12px">Following today’s clock against the sheet.</p>') +
+    '</div>' +
+    (bad.length ? '<div class="warn">' + bad.length + ' time conflict' + (bad.length > 1 ? 's' : '') + ' in the sheet: ' + bad.map(x => esc(x.title.slice(0, 24)) + ' (' + esc(x.status) + ')').join('; ') + '</div>' : '') +
+    '<div class="list">' + B.map((x, i) => '<button class="row' + (i === idx ? ' cur' : i < idx ? ' past' : '') + (x.status && x.status !== 'OK' ? ' bad' : '') + '" onclick="' + (manual ? 'go(' + i + ')' : '') + '"><span class="t">' + esc(x.start) + '</span><span>' + esc(x.title) + '</span><span class="m">' + (i < idx ? '✓' : x.min) + '</span></button>').join('') + '</div>';
+}
+
+document.addEventListener('keydown', e => {
+  if (!S || !S.ok || mode !== 'manual' || /SELECT|INPUT/.test(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); toggle(); }
+  if (e.key === 'ArrowRight') go(st.idx + 1);
+  if (e.key === 'ArrowLeft') go(st.idx - 1);
+});
+setInterval(() => S && S.ok && render(), 500);
+setInterval(refresh, 20000);
+refresh();
+</script>
+</body>
+</html>

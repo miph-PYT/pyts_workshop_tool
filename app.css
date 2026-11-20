@@ -1,0 +1,35 @@
+/* App-specific styles. Colours, fonts and spacing come from organic.css. */
+body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+a { color: var(--color-accent-700); } a:hover { color: var(--color-accent-800); }
+button { font: inherit; }
+
+.label { font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-neutral-700); }
+.muted { color: var(--color-neutral-700); }
+.row-btn { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); }
+.row-btn:hover { background: var(--color-surface); }
+.row-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.vibe-btn { flex: 1 1 0; min-width: 60px; height: 58px; border-radius: var(--radius-lg); border: 2px solid; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.vibe-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* Table editor */
+.sched-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sched-table th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-neutral-700); padding: 6px 4px; font-weight: 600; }
+.sched-table td { padding: 4px; vertical-align: middle; }
+.sched-table .input { min-height: 38px; height: 38px; font-size: 14px; background: var(--color-neutral-100); }
+.sched-table .time-cell { font-variant-numeric: tabular-nums; color: var(--color-neutral-700); white-space: nowrap; width: 52px; }
+.sched-table .min-cell { width: 76px; }
+.sched-table .act-cell { width: 1%; white-space: nowrap; }
+.icon-btn { width: 36px; height: 36px; border-radius: 999px; border: 0; background: transparent; color: var(--color-accent-700); cursor: pointer; font-size: 16px; line-height: 1; }
+.icon-btn:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.icon-btn:disabled { opacity: 0.3; cursor: default; background: transparent; }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--color-neutral-200); }
+.tabs button { border: 0; height: 36px; padding: 0 16px; border-radius: 999px; background: transparent; cursor: pointer; font-weight: 600; color: var(--color-neutral-800); }
+.tabs button[aria-selected="true"] { background: var(--color-bg); color: var(--color-text); box-shadow: var(--shadow-sm); }
+
+@media (max-width: 640px) {
+  .sched-table thead { display: none; }
+  .sched-table tr { display: grid; grid-template-columns: 52px 76px minmax(0, 1fr); gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--color-neutral-300); }
+  .sched-table td { padding: 0; }
+  .sched-table .note-cell { grid-column: 1 / -1; }
+  .sched-table .act-cell { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+}
