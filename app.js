@@ -114,6 +114,15 @@ class App extends Component {
     const base = { mode: null, workshops: [{ id: 'w1', name: 'Example workshop', blocks: SEED }], activeId: 'w1', runs: {}, history: {} };
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+    // Earlier versions shipped a different example workshop. Swap it for the current one unless it has saved sessions.
+    if (Array.isArray(saved.workshops)) {
+      let swapped = false;
+      saved.workshops = saved.workshops.map(w => {
+        if (w.id === 'w1' && w.name === 'Scene workshop' && w.blocks && w.blocks[0] && w.blocks[0].title === 'Communal landing and frame' && !((saved.history || {}).w1 || []).length) { swapped = true; return { id: 'w1', name: 'Example workshop', blocks: SEED }; }
+        return w;
+      });
+      if (swapped && saved.runs) { saved.runs = { ...saved.runs }; delete saved.runs.w1; }
+    }
     this.state = { ...base, ...saved, editor: null, review: null, copyText: '', copyMsg: '', screen: 'menu', notice: '' };
   }
 
@@ -422,6 +431,11 @@ class App extends Component {
         <h2 style="margin: 0; font-size: 24px;">Your workshops</h2>
         ${s.notice ? html`<p class="tag tag-accent-2" style="margin: 0; font-size: 14px; padding: 8px 14px; align-self: flex-start;">${s.notice}</p>` : null}
         <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+          ${!s.workshops.length ? html`
+            <div class="card" style="padding: var(--space-6); gap: var(--space-3); align-items: flex-start;">
+              <span style="font-size: 16px;">No workshops yet. Make your own with New workshop, or start from the example.</span>
+              <button class="btn btn-secondary" onClick=${() => this.setState({ workshops: [{ id: 'w1', name: 'Example workshop', blocks: SEED }], activeId: 'w1' })}>Add the example workshop</button>
+            </div>` : null}
           ${s.workshops.map(w => {
             const wb = w.blocks, tot = wb.reduce((a, x) => a + x.min, 0);
             const r = { ...EMPTY_RUN, ...(s.runs[w.id] || {}) };
@@ -828,7 +842,7 @@ class App extends Component {
     }
     let t = /^\d{1,2}:\d{2}$/.test(ed.start) ? toMin(ed.start) : 600;
     const starts = ed.rows.map(r => { const s = t; t += Math.max(1, parseInt(r.min, 10) || 0); return fmtHM(s); });
-    const canDelete = !!ed.id && this.state.workshops.length > 1;
+    const canDelete = !!ed.id;
 
     return html`
       <div class="dialog-backdrop" style="z-index: 60; padding: var(--space-6);" onClick=${() => this.setState({ editor: null })}>
@@ -884,7 +898,7 @@ class App extends Component {
 
           <span style=${'font-size: 14px; font-weight: 600; color: ' + infoColor}>${info}</span>
           <div class="dialog-actions" style="flex-wrap: wrap; align-items: center; gap: var(--space-3);">
-            ${canDelete ? html`<button class="btn btn-ghost" style="color: var(--color-accent-700); margin-right: auto;" onClick=${() => { if (!confirm('Delete “' + ed.name + '”? Its saved energy curves go too.')) return; this.setState(s => { const ws = s.workshops.filter(w => w.id !== ed.id); const runs = { ...s.runs }; delete runs[ed.id]; const history = { ...s.history }; delete history[ed.id]; return { workshops: ws, activeId: ws[0].id, runs, history, editor: null }; }); }}>Delete workshop</button>` : null}
+            ${canDelete ? html`<button class="btn btn-ghost" style="color: var(--color-accent-700); margin-right: auto;" onClick=${() => { if (!confirm('Delete “' + ed.name + '”? Its saved energy curves go too.')) return; this.setState(s => { const ws = s.workshops.filter(w => w.id !== ed.id); const runs = { ...s.runs }; delete runs[ed.id]; const history = { ...s.history }; delete history[ed.id]; return { workshops: ws, activeId: ws.length ? ws[0].id : null, runs, history, editor: null, screen: 'menu' }; }); }}>Delete workshop</button>` : null}
             <button class="btn btn-ghost" style="margin-left: auto;" onClick=${() => this.setState({ editor: null })}>Cancel</button>
             <button class="btn btn-primary" disabled=${!B.length} onClick=${() => this.saveEditor()}>Save</button>
           </div>
