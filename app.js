@@ -65,20 +65,22 @@ function phasesFor(b) {
   return ps.length >= 2 && ps.reduce((a, p) => a + p[1], 0) === b.min ? ps : null;
 }
 function parseSchedule(text) {
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  // "2pm" → "2:00pm" so times without minutes are understood
+  const lines = text.split(/\r?\n/).map(l => l.trim().replace(/(^|[^\d:.])(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)/gi, '$1$2:00$3')).filter(Boolean);
   const raw = []; let name = '';
   for (const line of lines) {
     let m = line.match(RANGE), s, e, rest;
     if (m) { s = to24(m[1], m[2], m[3] || m[6]); e = to24(m[4], m[5], m[6]); rest = line.slice(m[0].length); }
     else if ((m = line.match(SINGLE)) && !isMinutes(line)) { s = to24(m[1], m[2], m[3]); rest = line.slice(m[0].length); }
     if (s != null) {
+      rest = rest.replace(/^[\s|:–—-]+/, '');
       const parts = rest.split(/\t+|\s+\|\s+|\s{2,}|\s+[–—]\s+/).map(p => p.trim()).filter(Boolean);
       const blk = { s, e, min: null, lines: [] };
       for (const p of parts) { if (isMinutes(p) && blk.min == null && !blk.lines.length) blk.min = parseInt(p.replace(/\D/g, '')); else blk.lines.push(p); }
       raw.push(blk);
     } else if (raw.length) {
       const cur = raw[raw.length - 1];
-      if (isMinutes(line) && cur.min == null && !cur.lines.length) cur.min = parseInt(line.replace(/\D/g, ''));
+      if (isMinutes(line) && cur.min == null) cur.min = parseInt(line.replace(/\D/g, ''));
       else cur.lines.push(line);
     } else if (!name && !/^(time|when|duration|min)/i.test(line)) name = line.replace(/^#+\s*/, '');
   }
