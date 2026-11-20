@@ -148,13 +148,13 @@ const HeroArt = () => html`
       <circle r="64" fill="#1a524c" fill-opacity="0.72"></circle>
       <circle r="64" fill="none" stroke="rgba(224,250,255,0.18)" stroke-width="11"></circle>
       <circle class="ring" r="64" fill="none" stroke="#e8d4f0" stroke-width="11" stroke-linecap="round" pathLength="100" transform="rotate(-90)"></circle>
-      <g class="hand"><circle cy="-64" r="9" fill="#e0faff"></circle></g>
+      <g class="hand"><circle cy="-64" r="6.5" fill="#e0faff"></circle></g>
       <g class="ticks" fill="#cfeee9">
         <rect x="-16" y="-3" width="9" height="6" rx="3"></rect><rect x="-3" y="-3" width="6" height="6" rx="3"></rect><rect x="7" y="-3" width="9" height="6" rx="3"></rect>
       </g>
     </g>
-    <path class="curve" d="M52 222 C 85 222, 85 200, 118 200 S 151 230, 184 230 S 217 196, 250 196 S 283 178, 316 178" fill="none" stroke="#e0faff" stroke-width="3.5" stroke-linecap="round" pathLength="1"></path>
-    ${CURVE_DOTS.map(([x, y, v], i) => html`<circle class=${'dot d' + i} cx=${x} cy=${y} r="8" fill=${LV[v].color} stroke="#1f5f58" stroke-width="3"></circle>`)}
+    <path class="curve" d="M52 222 C 85 222, 85 200, 118 200 S 151 230, 184 230 S 217 196, 250 196 S 283 178, 316 178" fill="none" stroke="#e0faff" stroke-width="2.5" stroke-linecap="round" pathLength="1"></path>
+    ${CURVE_DOTS.map(([x, y, v], i) => html`<circle class=${'dot d' + i} cx=${x} cy=${y} r="7" fill=${LV[v].color} stroke="#1f5f58" stroke-width="3"></circle>`)}
   </svg>`;
 
 /* ------------------------------------------------------------------ */

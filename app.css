@@ -44,43 +44,40 @@ select.input option { background: var(--color-surface); color: var(--color-text)
 .hero-text { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .hero-art { flex: 0 1 340px; width: 100%; max-width: 340px; height: auto; overflow: visible; margin-inline: auto; }
 
-.hero-art .blob { transform-box: fill-box; transform-origin: center; opacity: 0.9; animation: blob-float 9s ease-in-out infinite alternate; }
-.hero-art .b1 { animation-duration: 11s; animation-delay: -2s; }
-.hero-art .b2 { animation-duration: 8s; animation-delay: -5s; }
-.hero-art .b3 { animation-duration: 12s; animation-delay: -1s; }
-.hero-art .b4 { animation-duration: 7s; animation-delay: -3s; }
-.hero-art .b5 { animation-duration: 10s; animation-delay: -6s; }
+.hero-art .blob { transform-box: fill-box; transform-origin: center; opacity: 0.55; animation: blob-float 18s ease-in-out infinite alternate; }
+.hero-art .b1 { animation-duration: 22s; animation-delay: -4s; }
+.hero-art .b2 { animation-duration: 16s; animation-delay: -9s; }
+.hero-art .b3 { animation-duration: 24s; animation-delay: -2s; }
+.hero-art .b4 { animation-duration: 14s; animation-delay: -6s; }
+.hero-art .b5 { animation-duration: 20s; animation-delay: -12s; }
 @keyframes blob-float {
-  0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
-  50%  { transform: translate(3px, -4px) rotate(6deg) scale(1.06); }
-  100% { transform: translate(-3px, 3px) rotate(-5deg) scale(0.96); }
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(1.5px, -1.5px) rotate(3deg); }
 }
 
-/* One 10-second cycle: the ring fills, the curve draws, dots pop in, then everything resets softly */
-.hero-art .ring { stroke-dasharray: 100; animation: ring-fill 10s linear infinite; }
-@keyframes ring-fill { 0% { stroke-dashoffset: 100; } 88% { stroke-dashoffset: 0; opacity: 1; } 96% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 100; opacity: 0; } }
-.hero-art .hand { animation: hand-turn 10s linear infinite; }
-@keyframes hand-turn { 0% { transform: rotate(0deg); opacity: 1; } 88% { transform: rotate(360deg); opacity: 1; } 96% { transform: rotate(360deg); opacity: 0; } 100% { transform: rotate(360deg); opacity: 0; } }
-.hero-art .ticks rect { animation: tick 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-.hero-art .ticks rect:nth-child(2) { animation-delay: 0.2s; }
-.hero-art .ticks rect:nth-child(3) { animation-delay: 0.4s; }
-@keyframes tick { 0%, 100% { opacity: 0.45; transform: scaleY(1); } 50% { opacity: 1; transform: scaleY(1.5); } }
+/* One slow 18-second cycle: the ring fills, the curve draws, dots fade in, then everything fades and restarts */
+.hero-art .ring { stroke-dasharray: 100; animation: ring-fill 18s linear infinite; }
+@keyframes ring-fill { 0% { stroke-dashoffset: 100; opacity: 0.9; } 85% { stroke-dashoffset: 0; opacity: 0.9; } 95% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 100; opacity: 0; } }
+.hero-art .hand { animation: hand-turn 18s linear infinite; }
+@keyframes hand-turn { 0% { transform: rotate(0deg); opacity: 0.85; } 85% { transform: rotate(360deg); opacity: 0.85; } 95%, 100% { transform: rotate(360deg); opacity: 0; } }
+.hero-art .ticks { opacity: 0.5; }
 
-.hero-art .curve { stroke-dasharray: 1; animation: curve-draw 10s ease-in-out infinite; }
-@keyframes curve-draw { 0%, 8% { stroke-dashoffset: 1; opacity: 1; } 70%, 88% { stroke-dashoffset: 0; opacity: 1; } 96%, 100% { stroke-dashoffset: 0; opacity: 0; } }
-.hero-art .dot { transform-box: fill-box; transform-origin: center; animation: dot-pop 10s ease-out infinite; }
-.hero-art .d1 { animation-name: dot-pop-1; } .hero-art .d2 { animation-name: dot-pop-2; }
-.hero-art .d3 { animation-name: dot-pop-3; } .hero-art .d4 { animation-name: dot-pop-4; }
-@keyframes dot-pop   { 0%, 9%  { transform: scale(0); } 13% { transform: scale(1.25); } 16%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
-@keyframes dot-pop-1 { 0%, 22% { transform: scale(0); } 26% { transform: scale(1.25); } 29%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
-@keyframes dot-pop-2 { 0%, 37% { transform: scale(0); } 41% { transform: scale(1.25); } 44%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
-@keyframes dot-pop-3 { 0%, 52% { transform: scale(0); } 56% { transform: scale(1.25); } 59%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
-@keyframes dot-pop-4 { 0%, 67% { transform: scale(0); } 71% { transform: scale(1.25); } 74%, 88% { transform: scale(1); opacity: 1; } 96%, 100% { transform: scale(1); opacity: 0; } }
+.hero-art .curve { stroke-dasharray: 1; opacity: 0.85; animation: curve-draw 18s ease-in-out infinite; }
+@keyframes curve-draw { 0%, 8% { stroke-dashoffset: 1; opacity: 0.85; } 72%, 85% { stroke-dashoffset: 0; opacity: 0.85; } 95%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+.hero-art .dot { opacity: 0; animation: dot-in 18s ease-in-out infinite; }
+.hero-art .d1 { animation-name: dot-in-1; } .hero-art .d2 { animation-name: dot-in-2; }
+.hero-art .d3 { animation-name: dot-in-3; } .hero-art .d4 { animation-name: dot-in-4; }
+@keyframes dot-in   { 0%, 9%  { opacity: 0; } 14%, 85% { opacity: 0.9; } 95%, 100% { opacity: 0; } }
+@keyframes dot-in-1 { 0%, 24% { opacity: 0; } 29%, 85% { opacity: 0.9; } 95%, 100% { opacity: 0; } }
+@keyframes dot-in-2 { 0%, 39% { opacity: 0; } 44%, 85% { opacity: 0.9; } 95%, 100% { opacity: 0; } }
+@keyframes dot-in-3 { 0%, 54% { opacity: 0; } 59%, 85% { opacity: 0.9; } 95%, 100% { opacity: 0; } }
+@keyframes dot-in-4 { 0%, 69% { opacity: 0; } 74%, 85% { opacity: 0.9; } 95%, 100% { opacity: 0; } }
 
 /* Respect "reduce motion": show the finished picture, no movement */
 @media (prefers-reduced-motion: reduce) {
   .hero-art * { animation: none !important; }
   .hero-art .ring { stroke-dashoffset: 30; }
   .hero-art .curve { stroke-dashoffset: 0; }
+  .hero-art .dot { opacity: 0.9; }
 }
 @media (max-width: 560px) { .hero-art { max-width: 260px; } }
