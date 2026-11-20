@@ -29,7 +29,9 @@ A title like `Small groups: discuss 20, harvest 15` gets sub-timers inside the b
 
 ## Your data
 
-Everything is stored in your browser's local storage on that device only. Use **Back up** on the menu to download a `.json` file and **Restore from file** to load it on another device or browser. Clearing your browser's site data deletes it, so back up now and then.
+Everything is stored in the browser's local storage, **on that device only**. Your workshops don't follow you to your phone, another computer or another browser, and clearing browser data or using a private window loses them. The menu page explains this to visitors in a "Saved on this device only" box.
+
+To move workshops: tap **Back up** (downloads a `.json` file), send the file to yourself, then tap **Restore from file** on the other device. Restoring adds the backup's workshops, updates any that are already there, and removes nothing else.
 
 ## Putting it online with GitHub Pages
 

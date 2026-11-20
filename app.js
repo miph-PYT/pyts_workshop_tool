@@ -157,8 +157,8 @@ class App extends Component {
   componentWillUnmount() { clearInterval(this.timer); window.removeEventListener('keydown', this.onKey); window.removeEventListener('paste', this.onPaste); }
   componentDidUpdate() { this.persist(); }
   persist() {
-    const { mode, workshops, activeId, runs, history, introHidden } = this.state;
-    try { localStorage.setItem(KEY, JSON.stringify({ mode, workshops, activeId, runs, history, introHidden })); } catch (e) {}
+    const { mode, workshops, activeId, runs, history, introHidden, lastBackup } = this.state;
+    try { localStorage.setItem(KEY, JSON.stringify({ mode, workshops, activeId, runs, history, introHidden, lastBackup })); } catch (e) {}
   }
 
   ws() { return this.state.workshops.find(w => w.id === this.state.activeId) || this.state.workshops[0]; }
@@ -275,6 +275,7 @@ class App extends Component {
     a.download = 'workshop-timer-backup-' + today() + '.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    this.setState({ lastBackup: today() });
   }
   restore(file) {
     if (!file) return;
@@ -283,7 +284,16 @@ class App extends Component {
       try {
         const d = JSON.parse(reader.result);
         if (!Array.isArray(d.workshops) || !d.workshops.length) throw new Error('no workshops');
-        this.setState({ mode: d.mode || null, workshops: d.workshops, activeId: d.activeId || d.workshops[0].id, runs: d.runs || {}, history: d.history || {}, notice: 'Restored ' + d.workshops.length + ' workshop' + (d.workshops.length > 1 ? 's' : '') + ' from the backup.' });
+        // Merge: workshops from the backup are added; ones with the same id are replaced by the backup's version.
+        this.setState(s => {
+          const ids = new Set(d.workshops.map(w => w.id));
+          // Drop an untouched example here so a restore doesn't leave it alongside the backup's own
+          const keep = s.workshops.filter(w => !ids.has(w.id) && !(w.id === 'w1' && w.name === 'Example workshop' && !(s.history || {}).w1 && !hasRatings((s.runs || {}).w1)));
+          const runs = { ...s.runs }, history = { ...(s.history || {}) };
+          for (const id of ids) { if ((d.runs || {})[id]) runs[id] = d.runs[id]; else delete runs[id]; if ((d.history || {})[id]) history[id] = d.history[id]; }
+          return { workshops: [...keep, ...d.workshops], activeId: d.workshops[0].id, runs, history,
+            notice: 'Restored ' + d.workshops.length + ' workshop' + (d.workshops.length > 1 ? 's' : '') + ' from the backup.' };
+        });
       } catch (e) { this.setState({ notice: 'That file isn’t a workshop timer backup.' }); }
     };
     reader.readAsText(file);
@@ -436,7 +446,7 @@ class App extends Component {
                 <span style="font-size: 14px; line-height: 1.5; color: var(--color-neutral-800);">${d}</span>
               </div>`)}
           </div>
-          <p class="muted" style="margin: var(--space-4) 0 0; font-size: 14px;">Not sure where to start? Open the example workshop below and press Start. A soft chime marks each new block, so keep the sound on. There’s no account: everything stays in this browser and nothing is sent anywhere.</p>
+          <p class="muted" style="margin: var(--space-4) 0 0; font-size: 14px;">Not sure where to start? Open the example workshop below and press Start. A soft chime marks each new block, so keep the sound on. There’s no account and nothing is sent anywhere: everything stays in this browser on this device (see “Saved on this device only” below).</p>
         </details>
         <h2 style="margin: 0; font-size: 24px;">Your workshops</h2>
         ${s.notice ? html`<p class="tag tag-accent-2" style="margin: 0; font-size: 14px; padding: 8px 14px; align-self: flex-start;">${s.notice}</p>` : null}
@@ -483,13 +493,24 @@ class App extends Component {
               </div>`;
           })}
         </div>
-        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--color-neutral-300);">
-          <span class="muted" style="font-size: 14px; flex: 1 1 260px;">Your workshops and ratings are saved in this browser. Back up to move them to another device.</span>
-          <button class="btn btn-secondary" onClick=${() => this.backup()}>Back up</button>
-          <label class="btn btn-secondary" style="cursor: pointer;">Restore from file
-            <input type="file" accept="application/json,.json" style="position: absolute; width: 1px; height: 1px; opacity: 0;" onChange=${e => { this.restore(e.target.files[0]); e.target.value = ''; }} />
-          </label>
-        </div>
+        <section aria-labelledby="device-h" style="display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4) var(--space-6); border-radius: var(--radius-lg); border: 2px solid var(--color-accent-2-300); background: var(--color-accent-2-100);">
+          <h2 id="device-h" style="margin: 0; font-size: 20px; color: var(--color-accent-2-800);">Saved on this device only</h2>
+          <p style="margin: 0; font-size: 15px; line-height: 1.5; text-wrap: pretty;">Your workshops, ratings and energy curves are stored in <b>this browser on this device</b>. They don’t follow you: open this page on your phone, another computer or another browser and you’ll only see the example. Clearing your browser data, or using a private/incognito window, also loses them.</p>
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.5;">
+            <span style="font-weight: 700;">Moving to another device</span>
+            <span>1. Here, tap <b>Back up</b>. A small file downloads.</span>
+            <span>2. Send that file to yourself, by email, chat or a cloud drive.</span>
+            <span>3. On the other device, open this page, tap <b>Restore from file</b> and choose the file.</span>
+            <span class="muted" style="font-size: 14px;">Restoring adds the workshops to that device. Ones that are already there are updated to the backup’s version, and nothing else is removed. Back up again after you change things.</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);">
+            <button class="btn btn-primary" style="height: 44px;" onClick=${() => this.backup()}>Back up</button>
+            <label class="btn btn-secondary" style="height: 44px; cursor: pointer; background: var(--color-bg);">Restore from file
+              <input type="file" accept="application/json,.json" style="position: absolute; width: 1px; height: 1px; opacity: 0;" onChange=${e => { this.restore(e.target.files[0]); e.target.value = ''; }} />
+            </label>
+            <span style="font-size: 14px; color: var(--color-accent-2-800);">${s.lastBackup ? 'Last backup from this device: ' + fmtDate(s.lastBackup) : 'No backup made from this device yet'}</span>
+          </div>
+        </section>
         <p class="muted" style="margin: 0; font-size: 13px;">Tip: paste a schedule anywhere on this page to turn it into a new workshop.</p>
       </div>`;
   }
