@@ -46,9 +46,10 @@ The domain needs one DNS record at one.com: a **CNAME** record with host `timer`
 | File | What's in it |
 | --- | --- |
 | `index.html` | The page shell |
-| `app.js` | All the behaviour. Settings at the top: `CHIME`, `DEFAULT_MODE`, the energy labels and colours (`LV`), and the example workshop (`SEED`) |
+| `app.js` | All the behaviour. Settings at the top: `SITE` (your website link), `CHIME`, `DEFAULT_MODE`, the energy labels and colours (`LV`), and the example workshop (`SEED`) |
 | `app.css` | Styles specific to this app |
-| `organic.css` | The colour, font and component styles (Organic design system). Change the colours at the top of this file |
+| `theme.css` | Colours, fonts and component styles, matched to parts-work.dk. Change the colours at the top of this file |
+| `favicon.svg` | The tab icon (same as parts-work.dk) |
 | `vendor/htm-preact.js` | Preact + htm (MIT licence), included so the app needs no internet or build tools |
 | `google-sheets/` | The earlier Google Sheets version of the timer |
 

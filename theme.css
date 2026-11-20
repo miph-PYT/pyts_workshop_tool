@@ -1,49 +1,56 @@
-/* Organic — design-system tokens and component classes. This file is the source of truth for the system's look; retune it here and see readme.md. */
-@import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap');
+/* Theme matched to parts-work.dk: dark teal ground, lilac accent, Cormorant Garamond / Nunito / Inter.
+   Change the colours here; app.css and app.js only use these variables. */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --color-bg: #f5ead8;
-  --color-surface: #ebddc5;
-  --color-text: #201e1d;
-  --color-accent: #c67139;
-  --color-accent-2: #7a8a5e;
-  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+  /* parts-work.dk palette */
+  --pw-ground: #1f5f58; --pw-band: #2f7b70; --pw-raised: #2a6e66; --pw-sunk: #1a524c;
+  --pw-brand: #46998d; --pw-lilac: #e8d4f0; --pw-cyan: #e0faff; --pw-soft: #cfeee9;
+  --pw-ink: #1d4f80; --pw-ochre: #d4a33a; --pw-rose: #dcb2bd;
 
-  /* Tonal ramps — generated in OKLCH on one shared lightness scale, so the
-     same step of any role matches the others in visual value. */
-  --color-neutral-100: #f9f4ed;
-  --color-neutral-200: #eee7db;
-  --color-neutral-300: #dcd3c4;
-  --color-neutral-400: #c0b6a5;
-  --color-neutral-500: #a19786;
-  --color-neutral-600: #82796a;
-  --color-neutral-700: #645c50;
-  --color-neutral-800: #474238;
-  --color-neutral-900: #2e2b25;
+  --color-bg: var(--pw-ground);
+  --color-surface: var(--pw-raised);
+  --color-text: var(--pw-cyan);
+  --color-accent: var(--pw-lilac);
+  --color-on-accent: var(--pw-ink);
+  --color-accent-2: #5fb3a5;
+  --color-divider: rgba(224, 250, 255, 0.18);
 
-  --color-accent-100: #fff2eb;
-  --color-accent-200: #ffe1d0;
-  --color-accent-300: #ffc6a5;
-  --color-accent-400: #f6a06b;
-  --color-accent-500: #d67f48;
-  --color-accent-600: #b2622d;
-  --color-accent-700: #8c491a;
-  --color-accent-800: #643312;
-  --color-accent-900: #402310;
+  /* "Ramps" for a dark ground: low steps are dark tints for fills, high steps are light colours for text */
+  --color-neutral-100: var(--pw-sunk);
+  --color-neutral-200: #174a44;
+  --color-neutral-300: #3f8279;
+  --color-neutral-400: #5c958d;
+  --color-neutral-500: #85b3ac;
+  --color-neutral-600: #a9cfc9;
+  --color-neutral-700: var(--pw-soft);
+  --color-neutral-800: var(--pw-cyan);
+  --color-neutral-900: #0b2622;
 
-  --color-accent-2-100: #f0fae1;
-  --color-accent-2-200: #e1eecc;
-  --color-accent-2-300: #ccdbb2;
-  --color-accent-2-400: #aebf92;
-  --color-accent-2-500: #8fa073;
-  --color-accent-2-600: #728157;
-  --color-accent-2-700: #56633f;
-  --color-accent-2-800: #3d472b;
-  --color-accent-2-900: #272e1b;
+  --color-accent-100: #36586e;
+  --color-accent-200: #4a6a80;
+  --color-accent-300: #b9a6c6;
+  --color-accent-400: #d6c2e2;
+  --color-accent-500: var(--pw-lilac);
+  --color-accent-600: var(--pw-cyan);
+  --color-accent-700: var(--pw-rose);
+  --color-accent-800: var(--pw-lilac);
+  --color-accent-900: #ffffff;
 
-  --font-heading: "Caprasimo", system-ui, sans-serif;
-  --font-heading-weight: 400;
-  --font-body: "Figtree", system-ui, sans-serif;
+  --color-accent-2-100: var(--pw-sunk);
+  --color-accent-2-200: #20665d;
+  --color-accent-2-300: var(--pw-brand);
+  --color-accent-2-400: #5fb3a5;
+  --color-accent-2-500: #5fb3a5;
+  --color-accent-2-600: #86c9bd;
+  --color-accent-2-700: #b0e0d8;
+  --color-accent-2-800: var(--pw-soft);
+  --color-accent-2-900: var(--pw-cyan);
+
+  --font-heading: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-heading-weight: 600;
+  --font-display: "Nunito", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --space-1: 4.4px;
   --space-2: 8.8px;
@@ -54,13 +61,11 @@
 
   --radius-sm: 8px;
   --radius-md: 16px;
-  --radius-lg: 28px;
+  --radius-lg: 24px;
 
-  /* Elevation — derived from the ground: soft ink-tinted shadows on a
-     light theme, a hairline edge + ambient darkness on a dark one. */
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
-  --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
-  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 body {
@@ -68,9 +73,8 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
 }
-h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-style: italic; }
 
-.washed{filter:saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94)}
 
 /* ══════════════════════════════════════════════════════════════════════════
    Components — built with the tokens above. Plain CSS
@@ -80,6 +84,7 @@ h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-headi
 
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 400; }
+h1 { color: var(--color-text); } h2 { color: var(--color-accent); }
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading); font-weight: var(--font-heading-weight);
   line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
@@ -114,8 +119,8 @@ figcaption {
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   cursor: pointer; text-decoration: none;
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 14px; line-height: 1.2; color: var(--color-text); /* matches the .input's 14px —
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 15px; line-height: 1.2; color: var(--color-text); /* matches the .input's 14px —
      the pair sits side by side in sign-up rows */
   background: transparent; border: 1px solid transparent;
   padding: var(--space-2) calc(var(--space-3) * 1.2);
@@ -123,11 +128,11 @@ figcaption {
 }
 .btn svg { display: block; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary { background: var(--color-accent); color: var(--color-bg); }
-.btn-primary:hover { background: var(--color-accent-600); }
-.btn-primary:active { background: var(--color-accent-700); }
-.btn-secondary { border-color: var(--color-divider); }
-.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-primary { background: var(--color-accent); color: var(--color-on-accent); border: 2px solid var(--color-accent); }
+.btn-primary:hover { background: var(--pw-cyan); border-color: var(--pw-cyan); }
+.btn-primary:active { background: var(--pw-soft); }
+.btn-secondary { border: 2px solid var(--color-accent); color: var(--color-accent); }
+.btn-secondary:hover { background: var(--color-accent); color: var(--color-on-accent); }
 .btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
 .btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
 .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
@@ -172,7 +177,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   padding: 7px 12px; font-size: 13px; cursor: pointer;
 }
 .seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
-.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
+.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-on-accent); font-weight: 600; }
 .seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
 .seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 
@@ -205,6 +210,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 .tag-accent-2 { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
 .tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
 .tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+.tag { font-size: 12px; }
 
 /* — navigation — */
 .nav {
@@ -213,7 +219,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   border-bottom: none;
 }
 .nav-brand {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-family: var(--font-display); font-weight: 800; color: var(--color-accent);
   font-size: 18px; margin-right: auto;
 }
 .nav a { color: inherit; text-decoration: none; font-size: 14px; }
@@ -236,7 +242,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 .dialog-backdrop {
   position: fixed; inset: 0; display: grid; place-items: center;
   padding: var(--space-4);
-  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+  background: rgba(8, 30, 27, 0.72);
 }
 .dialog {
   width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3);
@@ -244,8 +250,8 @@ textarea.input { min-height: 90px; resize: vertical; }
   background: var(--color-surface); box-shadow: var(--shadow-lg);
 }
 .dialog-title {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 20px;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-style: italic;
+  font-size: 30px; color: var(--color-accent);
 }
 .dialog-body { font-size: 14px; opacity: 0.85; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }

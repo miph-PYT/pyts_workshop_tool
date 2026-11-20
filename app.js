@@ -19,16 +19,17 @@ const SEED = [
 /* Settings                                                           */
 /* ------------------------------------------------------------------ */
 const KEY = 'workshop-timer-v3';     // localStorage key
+const SITE = 'https://www.parts-work.dk/'; // your website, linked from the menu and timer
 const CHIME = true;                  // soft chime when a block or sub-timer changes
 const DEFAULT_MODE = 'manual';       // 'manual' (Facilitator) or 'clock' (Follow clock)
 
 /* Energy levels: label, colour, text colour on that colour */
 const LV = [null,
-  { label: 'Flat', color: '#2f5d8a', fg: '#ffffff' },
-  { label: 'Low', color: '#6b93c4', fg: '#14202e' },
-  { label: 'Steady', color: '#9b9686', fg: '#1c1b17' },
-  { label: 'Warm', color: '#e0954a', fg: '#2a1606' },
-  { label: 'Alive', color: '#b4501c', fg: '#ffffff' },
+  { label: 'Flat', color: '#7aa7dd', fg: '#0f2a3f' },
+  { label: 'Low', color: '#b5d3ee', fg: '#0f2a3f' },
+  { label: 'Steady', color: '#cfeee9', fg: '#12302c' },
+  { label: 'Warm', color: '#e3b3c0', fg: '#3a1c25' },
+  { label: 'Alive', color: '#e2b04a', fg: '#2b1f05' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -421,6 +422,10 @@ class App extends Component {
     const s = this.state, hist = s.history || {};
     return html`
       <div style="flex: 1; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; padding: var(--space-8) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6);">
+        <nav aria-label="Made by" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin: calc(var(--space-4) * -1) 0 0; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider);">
+          <a href=${SITE} target="_blank" rel="noopener" style="font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--color-accent); text-decoration: none;">Philipp Mitterhofer</a>
+          <a href=${SITE} target="_blank" rel="noopener" class="btn btn-secondary" style="height: 40px;">Visit parts-work.dk ↗</a>
+        </nav>
         <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);">
           <div>
             <h1 style="margin: 0 0 4px; font-size: clamp(32px, 5vw, 48px); line-height: 1.05;">Workshop timer</h1>
@@ -430,7 +435,7 @@ class App extends Component {
         </div>
         <details open=${!this.state.introHidden} onToggle=${e => { const hidden = !e.target.open; if (hidden !== !!this.state.introHidden) this.setState({ introHidden: hidden }); }}
           style="border-radius: var(--radius-lg); background: var(--color-neutral-100); padding: var(--space-4) var(--space-6);">
-          <summary style="cursor: pointer; font-family: var(--font-heading); font-size: 20px;">How it works</summary>
+          <summary style="cursor: pointer; font-family: var(--font-heading); font-style: italic; font-weight: 600; font-size: 26px; color: var(--color-accent);">How it works</summary>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4) var(--space-6); margin-top: var(--space-4);">
             ${[
               ['1', 'Plan', 'Tap New workshop and add your blocks in a simple table: minutes, a title and a note. Or paste a schedule straight from your doc. Breaks are blocks too.'],
@@ -440,7 +445,7 @@ class App extends Component {
             ].map(([n, t, d]) => html`
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 <span style="display: flex; align-items: center; gap: var(--space-2);">
-                  <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: var(--color-accent); color: var(--color-bg); font-weight: 700; font-size: 14px;">${n}</span>
+                  <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: var(--color-accent); color: var(--color-on-accent); font-weight: 700; font-size: 14px;">${n}</span>
                   <span style="font-weight: 700; font-size: 16px;">${t}</span>
                 </span>
                 <span style="font-size: 14px; line-height: 1.5; color: var(--color-neutral-800);">${d}</span>
@@ -471,7 +476,7 @@ class App extends Component {
               <div class="card" key=${w.id} style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-6);">
                 <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);">
-                    <span style="font-family: var(--font-heading); font-size: 24px; line-height: 1.15;">${w.name}</span>
+                    <span style="font-family: var(--font-heading); font-style: italic; font-weight: 600; font-size: 28px; line-height: 1.15;">${w.name}</span>
                     ${inProgress ? html`<span class="tag tag-accent-2">In progress</span>` : null}
                   </div>
                   <span class="muted" style="font-size: 15px; font-variant-numeric: tabular-nums;">${wb[0].start}–${fmtHM(toMin(wb[0].start) + tot)} · ${wb.length} blocks · ${tot} min</span>
@@ -481,7 +486,7 @@ class App extends Component {
                 <div role="alert" style="flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--color-accent-100);">
                   <span style="flex: 1 1 240px; font-size: 15px; color: var(--color-accent-800);">Delete “${w.name}”?${h.length ? ' Its ' + h.length + ' saved energy curve' + (h.length > 1 ? 's go' : ' goes') + ' too.' : ''} This can’t be undone.</span>
                   <button class="btn btn-secondary" style="height: 44px;" onClick=${() => this.setState({ confirmDelete: null })}>Cancel</button>
-                  <button class="btn" style="height: 44px; background: var(--color-accent-700); color: #fff;" onClick=${() => this.deleteWorkshop(w.id)}>Yes, delete</button>
+                  <button class="btn" style="height: 44px; background: var(--color-accent-700); color: var(--color-on-accent); border: 2px solid var(--color-accent-700);" onClick=${() => this.deleteWorkshop(w.id)}>Yes, delete</button>
                 </div>` : html`
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);">
                   <button class="btn btn-ghost" style="height: 48px; color: var(--color-accent-700);" aria-label=${'Delete ' + w.name} onClick=${() => this.setState({ confirmDelete: w.id })}>Delete</button>
@@ -512,6 +517,14 @@ class App extends Component {
           </div>
         </section>
         <p class="muted" style="margin: 0; font-size: 13px;">Tip: paste a schedule anywhere on this page to turn it into a new workshop.</p>
+        <aside aria-labelledby="about-h" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--pw-band); box-shadow: inset 0 0 0 2px var(--color-accent);">
+          <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2);">
+            <span class="label">Made by</span>
+            <h2 id="about-h" style="margin: 0; font-size: 30px;">Philipp Mitterhofer</h2>
+            <p style="margin: 0; font-size: 16px; line-height: 1.6;">Facilitator and parts-work coach in Copenhagen. I help people stay with the parts of themselves they usually run from, until they can meet them with kindness. This timer is free to use.</p>
+          </div>
+          <a href=${SITE} target="_blank" rel="noopener" class="btn btn-primary" style="height: 52px; font-size: 16px; padding-inline: 24px;">Visit parts-work.dk ↗</a>
+        </aside>
       </div>`;
   }
 
@@ -623,7 +636,7 @@ class App extends Component {
                 <circle cx="130" cy="130" r="112" fill="none" stroke=${ringColor} stroke-width="22" stroke-linecap="round" stroke-dasharray="703.7" stroke-dashoffset=${ringOffset} style="transition: stroke-dashoffset 0.4s linear;"></circle>
               </svg>
               <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
-                <span style=${'font-family: var(--font-heading); font-size: 58px; line-height: 1; font-variant-numeric: tabular-nums; color: ' + timeColor}>${bigTime}</span>
+                <span style=${'font-family: var(--font-display); font-weight: 800; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; color: ' + timeColor}>${bigTime}</span>
                 <span class="muted" style="font-size: 14px;">${bigCaption}</span>
               </div>
             </div>
@@ -707,7 +720,7 @@ class App extends Component {
             const shownMin = manual ? x.min : Math.max(0, Math.round(D[i]));
             const badge = v ? v : past ? '✓' : shownMin + ((run.extra[i] && manual) || changed ? '*' : '');
             const dotBg = v ? LV[v].color : cur ? 'var(--color-accent)' : past ? 'var(--color-accent-2-100)' : 'var(--color-neutral-100)';
-            const dotColor = v ? LV[v].fg : cur ? 'var(--color-bg)' : past ? 'var(--color-accent-2-800)' : 'var(--color-neutral-800)';
+            const dotColor = v ? LV[v].fg : cur ? 'var(--color-on-accent)' : past ? 'var(--color-accent-2-800)' : 'var(--color-neutral-800)';
             return html`
               <button class="row-btn" key=${i} onClick=${() => manual && this.go(i)}
                 style=${'cursor: ' + (manual ? 'pointer' : 'default') + '; background: ' + (cur ? 'var(--color-surface)' : '') + '; opacity: ' + (past ? 0.6 : 1)}>
@@ -722,6 +735,7 @@ class App extends Component {
           <p class="muted" style="margin: 0; padding: 0 var(--space-2); font-size: 13px;">
             ${manual ? 'Space start/pause · ← → between blocks · 1–5 rates the room' : 'Blocks follow the clock · → moves on now · 1–5 rates the room · * = changed from plan'}
           </p>
+          <p class="muted" style="margin: var(--space-2) 0 0; padding: 0 var(--space-2); font-size: 13px;">Workshop timer by <a href=${SITE} target="_blank" rel="noopener">Philipp Mitterhofer · parts-work.dk ↗</a></p>
         </section>
       </main>`;
   }
@@ -810,7 +824,7 @@ class App extends Component {
                   </svg>
                   ${rated.map(it => html`
                     <span title=${(it.i + 1) + '. ' + timeOf(it) + ' ' + it.title + ' — ' + LV[it.v].label + (it.note ? ': ' + it.note : '')}
-                      style=${'position: absolute; left: ' + ((it.i + 0.5) * 100 / n) + '%; top: ' + PLOT_Y(it.v) + 'px; transform: translate(-50%, -50%); width: 26px; height: 26px; border-radius: 999px; background: ' + LV[it.v].color + '; color: ' + LV[it.v].fg + '; border: 2px solid var(--color-surface); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;'}>${it.v}</span>`)}
+                      style=${'position: absolute; left: ' + ((it.i + 0.5) * 100 / n) + '%; top: ' + PLOT_Y(it.v) + 'px; transform: translate(-50%, -50%); width: 26px; height: 26px; border-radius: 999px; background: ' + LV[it.v].color + '; color: ' + LV[it.v].fg + '; border: 2px solid var(--color-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;'}>${it.v}</span>`)}
                 </div>
               </div>
               <div style=${'display: grid; grid-template-columns: repeat(' + n + ', minmax(0, 1fr)); gap: 4px; margin-left: 69px;'}>
@@ -941,7 +955,7 @@ class App extends Component {
               <span role="alert" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-right: auto; padding: 6px 6px 6px 14px; border-radius: 999px; background: var(--color-accent-100); color: var(--color-accent-800); font-size: 14px;">
                 Delete this workshop?
                 <button class="btn btn-secondary" style="height: 36px;" onClick=${() => this.updEditor({ confirmDel: false })}>Cancel</button>
-                <button class="btn" style="height: 36px; background: var(--color-accent-700); color: #fff;" onClick=${() => this.deleteWorkshop(ed.id)}>Yes, delete</button>
+                <button class="btn" style="height: 36px; background: var(--color-accent-700); color: var(--color-on-accent); border: 2px solid var(--color-accent-700);" onClick=${() => this.deleteWorkshop(ed.id)}>Yes, delete</button>
               </span>` : null}
             <button class="btn btn-ghost" style="margin-left: auto;" onClick=${() => this.setState({ editor: null })}>Cancel</button>
             <button class="btn btn-primary" disabled=${!B.length} onClick=${() => this.saveEditor()}>Save</button>
