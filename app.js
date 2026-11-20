@@ -662,6 +662,10 @@ class App extends Component {
     const totalText = (manual ? B[0].start + '–' + fmtHM(plannedEnd) + ' · ' + totalMin : fmtHM(this.clockFirst(B)) + '–' + fmtHM(this.clockFirst(B) + sumD) + ' · ' + Math.round(sumD)) + ' min';
 
     return html`
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px var(--space-4); padding: 8px var(--space-6); background: var(--color-neutral-100); font-size: 14px;">
+        <span class="muted">Workshop timer by <a href=${SITE} target="_blank" rel="noopener" style="color: var(--color-accent); font-family: var(--font-display); font-weight: 800; text-decoration: none;">Philipp Mitterhofer</a></span>
+        <a href=${SITE} target="_blank" rel="noopener" style="color: var(--color-accent); font-family: var(--font-display); font-weight: 800; text-decoration: none;">parts-work.dk ↗</a>
+      </div>
       <header class="nav" style="flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-6);">
         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); min-width: 0;">
           <button class="btn btn-ghost" style="height: 44px;" onClick=${() => { this.setState({ screen: 'menu' }); this.lastKey = null; }}>← Workshops</button>
@@ -763,7 +767,8 @@ class App extends Component {
               <input class="input" style="height: 44px;" aria-label="Note for this block" placeholder="Quick note (optional) — what you noticed" value=${run.notes[idx] || ''} onInput=${e => this.setNoteAt(idx, e.target.value)} />
             </div>` : null}
 
-          ${done ? html`<button class="btn btn-primary" style="align-self: flex-start; height: 48px; font-size: 16px;" onClick=${() => this.setState({ review: { sel: 'live' }, copyText: '', copyMsg: '' })}>See the energy curve</button>` : null}
+          ${done ? html`<button class="btn btn-primary" style="align-self: flex-start; height: 48px; font-size: 16px;" onClick=${() => this.setState({ review: { sel: 'live' }, copyText: '', copyMsg: '' })}>See the energy curve</button>
+            <p style="margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); background: var(--color-neutral-100); font-size: 15px; line-height: 1.5;">This timer is made by Philipp Mitterhofer, facilitator and parts-work coach in Copenhagen. Find his workshops and coaching at <a href=${SITE} target="_blank" rel="noopener">parts-work.dk ↗</a></p>` : null}
         </section>
 
         <section style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3);">
