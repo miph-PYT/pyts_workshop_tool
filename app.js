@@ -146,8 +146,8 @@ class App extends Component {
   componentWillUnmount() { clearInterval(this.timer); window.removeEventListener('keydown', this.onKey); window.removeEventListener('paste', this.onPaste); }
   componentDidUpdate() { this.persist(); }
   persist() {
-    const { mode, workshops, activeId, runs, history } = this.state;
-    try { localStorage.setItem(KEY, JSON.stringify({ mode, workshops, activeId, runs, history })); } catch (e) {}
+    const { mode, workshops, activeId, runs, history, introHidden } = this.state;
+    try { localStorage.setItem(KEY, JSON.stringify({ mode, workshops, activeId, runs, history, introHidden })); } catch (e) {}
   }
 
   ws() { return this.state.workshops.find(w => w.id === this.state.activeId) || this.state.workshops[0]; }
@@ -395,10 +395,31 @@ class App extends Component {
         <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);">
           <div>
             <h1 style="margin: 0 0 4px; font-size: clamp(32px, 5vw, 48px); line-height: 1.05;">Workshop timer</h1>
-            <p style="margin: 0; font-size: 16px;" class="muted">Pick the workshop you’re running today.</p>
+            <p style="margin: 0; font-size: 17px; max-width: 34em; text-wrap: pretty;">A calm timer for running a workshop live. Plan your blocks, keep time without staring at the clock, sense how the room is doing, and look back afterwards at what worked.</p>
           </div>
           <button class="btn btn-primary" onClick=${() => this.openEditor(null)} style="height: 48px; font-size: 16px;">New workshop</button>
         </div>
+        <details open=${!this.state.introHidden} onToggle=${e => { const hidden = !e.target.open; if (hidden !== !!this.state.introHidden) this.setState({ introHidden: hidden }); }}
+          style="border-radius: var(--radius-lg); background: var(--color-neutral-100); padding: var(--space-4) var(--space-6);">
+          <summary style="cursor: pointer; font-family: var(--font-heading); font-size: 20px;">How it works</summary>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4) var(--space-6); margin-top: var(--space-4);">
+            ${[
+              ['1', 'Plan', 'Tap New workshop and add your blocks in a simple table: minutes, a title and a note. Or paste a schedule straight from your doc. Breaks are blocks too.'],
+              ['2', 'Run', 'Open a workshop and pick how to keep time. Facilitator: you start, pause and move on yourself. Follow clock: blocks follow the time of day, and you can stretch a block, move on early or catch up when things run long.'],
+              ['3', 'Sense the room', 'Whenever you feel the energy shift, tap 1–5, from Flat to Alive, and add a quick note if something stands out.'],
+              ['4', 'Look back', 'The energy curve shows how the workshop flowed: what lit up, what fell flat and how the timing compared to the plan. Copy the summary into your notes.'],
+            ].map(([n, t, d]) => html`
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="display: flex; align-items: center; gap: var(--space-2);">
+                  <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: var(--color-accent); color: var(--color-bg); font-weight: 700; font-size: 14px;">${n}</span>
+                  <span style="font-weight: 700; font-size: 16px;">${t}</span>
+                </span>
+                <span style="font-size: 14px; line-height: 1.5; color: var(--color-neutral-800);">${d}</span>
+              </div>`)}
+          </div>
+          <p class="muted" style="margin: var(--space-4) 0 0; font-size: 14px;">Not sure where to start? Open the example workshop below and press Start. A soft chime marks each new block, so keep the sound on. There’s no account: everything stays in this browser and nothing is sent anywhere.</p>
+        </details>
+        <h2 style="margin: 0; font-size: 24px;">Your workshops</h2>
         ${s.notice ? html`<p class="tag tag-accent-2" style="margin: 0; font-size: 14px; padding: 8px 14px; align-self: flex-start;">${s.notice}</p>` : null}
         <div style="display: flex; flex-direction: column; gap: var(--space-3);">
           ${s.workshops.map(w => {
