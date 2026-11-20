@@ -35,9 +35,9 @@ Everything is stored in your browser's local storage on that device only. Use **
 
 1. On GitHub, open the repository → **Settings** → **Pages**.
 2. Under **Build and deployment**, choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
-3. After a minute the site is live at `https://miph-pyt.github.io/pyts_workshop_tool/`.
+3. The site lives at **https://timer.parts-work.dk** (set in the `CNAME` file).
 
-To use your own domain, add it under **Custom domain** on the same page.
+The domain needs one DNS record at one.com: a **CNAME** record with host `timer` pointing to `miph-pyt.github.io`. Once GitHub has checked it, tick **Enforce HTTPS** on the Pages settings page. To use a different address, change the `CNAME` file and the DNS record to match.
 
 ## Changing things
 
