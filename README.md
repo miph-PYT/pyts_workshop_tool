@@ -46,7 +46,7 @@ The domain needs one DNS record at one.com: a **CNAME** record with host `timer`
 | File | What's in it |
 | --- | --- |
 | `index.html` | The page shell |
-| `app.js` | All the behaviour. Settings at the top: `SITE` (your website link), `CHIME`, `DEFAULT_MODE`, the energy labels and colours (`LV`), and the example workshop (`SEED`) |
+| `app.js` | All the behaviour. Settings at the top: `SITE` (your website link), `FEEDBACK_EMAIL` (where feedback goes), `CHIME`, `DEFAULT_MODE`, the energy labels and colours (`LV`), and the example workshop (`SEED`) |
 | `app.css` | Styles specific to this app |
 | `theme.css` | Colours, fonts and component styles, matched to parts-work.dk. Change the colours at the top of this file |
 | `favicon.svg` | The tab icon (same as parts-work.dk) |

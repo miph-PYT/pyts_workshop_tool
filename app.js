@@ -20,6 +20,25 @@ const SEED = [
 /* ------------------------------------------------------------------ */
 const KEY = 'workshop-timer-v3';     // localStorage key
 const SITE = 'https://www.parts-work.dk/'; // your website, linked from the menu and timer
+const FEEDBACK_EMAIL = 'Philipp@parts-work.dk'; // where "Send feedback" emails go
+
+/* A mailto: link with a short template and the technical details that help with bug reports */
+function feedbackHref(where) {
+  const body = [
+    'What would you like to tell me? An idea, something confusing, or a bug?',
+    '',
+    '',
+    'If it’s a bug: what did you do, what did you expect, and what happened instead?',
+    '',
+    '',
+    '— Details that help me fix things (feel free to delete) —',
+    'Screen: ' + where,
+    'Browser: ' + navigator.userAgent,
+    'Window: ' + window.innerWidth + '×' + window.innerHeight,
+    'Date: ' + new Date().toISOString().slice(0, 16).replace('T', ' '),
+  ].join('\n');
+  return 'mailto:' + FEEDBACK_EMAIL + '?subject=' + encodeURIComponent('Workshop timer feedback') + '&body=' + encodeURIComponent(body);
+}
 const CHIME = true;                  // soft chime when a block or sub-timer changes
 const DEFAULT_MODE = 'manual';       // 'manual' (Facilitator) or 'clock' (Follow clock)
 
@@ -424,7 +443,10 @@ class App extends Component {
       <div style="flex: 1; width: 100%; max-width: 820px; margin: 0 auto; box-sizing: border-box; padding: var(--space-8) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6);">
         <nav aria-label="Made by" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin: calc(var(--space-4) * -1) 0 0; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-divider);">
           <a href=${SITE} target="_blank" rel="noopener" style="font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--color-accent); text-decoration: none;">Philipp Mitterhofer</a>
-          <a href=${SITE} target="_blank" rel="noopener" class="btn btn-secondary" style="height: 40px;">Visit parts-work.dk ↗</a>
+          <span style="display: flex; flex-wrap: wrap; gap: var(--space-2);">
+            <a href=${feedbackHref('menu')} class="btn btn-ghost" style="height: 40px;">Send feedback</a>
+            <a href=${SITE} target="_blank" rel="noopener" class="btn btn-secondary" style="height: 40px;">Visit parts-work.dk ↗</a>
+          </span>
         </nav>
         <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4);">
           <div>
@@ -517,6 +539,13 @@ class App extends Component {
           </div>
         </section>
         <p class="muted" style="margin: 0; font-size: 13px;">Tip: paste a schedule anywhere on this page to turn it into a new workshop.</p>
+        <section aria-labelledby="fb-h" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-6); padding: var(--space-4) var(--space-6); border-radius: var(--radius-lg); background: var(--color-neutral-100);">
+          <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+            <h2 id="fb-h" style="margin: 0; font-size: 24px;">Found a bug or have an idea?</h2>
+            <p style="margin: 0; font-size: 15px; line-height: 1.5;">I’d love to hear what works, what’s confusing and what you’d add. The button opens an email to me, or write to <a href=${'mailto:' + FEEDBACK_EMAIL}>${FEEDBACK_EMAIL}</a>.</p>
+          </div>
+          <a href=${feedbackHref('menu')} class="btn btn-primary" style="height: 48px; font-size: 16px; padding-inline: 22px;">Send feedback or a bug</a>
+        </section>
         <aside aria-labelledby="about-h" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--pw-band); box-shadow: inset 0 0 0 2px var(--color-accent);">
           <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2);">
             <span class="label">Made by</span>
@@ -735,7 +764,7 @@ class App extends Component {
           <p class="muted" style="margin: 0; padding: 0 var(--space-2); font-size: 13px;">
             ${manual ? 'Space start/pause · ← → between blocks · 1–5 rates the room' : 'Blocks follow the clock · → moves on now · 1–5 rates the room · * = changed from plan'}
           </p>
-          <p class="muted" style="margin: var(--space-2) 0 0; padding: 0 var(--space-2); font-size: 13px;">Workshop timer by <a href=${SITE} target="_blank" rel="noopener">Philipp Mitterhofer · parts-work.dk ↗</a></p>
+          <p class="muted" style="margin: var(--space-2) 0 0; padding: 0 var(--space-2); font-size: 13px;">Workshop timer by <a href=${SITE} target="_blank" rel="noopener">Philipp Mitterhofer · parts-work.dk ↗</a> · <a href=${feedbackHref('timer, ' + (manual ? 'Facilitator' : 'Follow clock') + ' mode, block ' + Math.min(idx + 1, B.length) + ' of ' + B.length)}>Send feedback or a bug</a></p>
         </section>
       </main>`;
   }
