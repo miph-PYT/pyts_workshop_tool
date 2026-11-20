@@ -29,6 +29,8 @@ A title like `Small groups: discuss 20, harvest 15` gets sub-timers inside the b
 
 **Editing afterwards and post-mortems.** Every session stays editable: change ratings, notes, actual minutes and the date at any time, and fill in the reflection (What worked? / What would I change? / Notes for next time). **Post-mortem** (on the workshop card, or **+ Post-mortem** in the energy curve) logs a workshop afterwards without having run the timer: pick the date, rate each block, note the minutes and reflect. A post-mortem left completely empty is removed when you close it.
 
+**Exporting a session.** At the bottom of the energy curve: **Copy text** (plain summary), **Markdown** (a `.md` file for Obsidian or other notes apps), **CSV** (for Excel or Google Sheets) and **PDF / Print** (opens a clean report with the curve; choose “Save as PDF” in the print dialog).
+
 ## Your data
 
 Everything is stored in the browser's local storage, **on that device only**. Your workshops don't follow you to your phone, another computer or another browser, and clearing browser data or using a private window loses them. The menu page explains this to visitors in a "Saved on this device only" box.

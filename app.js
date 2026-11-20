@@ -69,6 +69,15 @@ const freshClk = () => ({ day: today(), shift: 0, extra: {} });
 const hasText = o => Object.values(o || {}).some(x => x && String(x).trim());
 const hasRatings = r => r && (Object.keys(r.vibe || {}).length > 0 || hasText(r.notes) || hasText(r.reflection));
 const sessionHasContent = h => h && (h.items.some(it => it.v || (it.note && it.note.trim()) || (h.postMortem && it.actual != null)) || hasText(h.reflection));
+const slug = t => String(t).toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').slice(0, 40) || 'workshop';
+const escHtml = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function downloadFile(name, text, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
 const REFLECT = [
   ['worked', 'What worked?', 'Moments that landed, exercises to keep'],
   ['change', 'What would I change?', 'Timing, order, instructions, energy dips'],
@@ -899,6 +908,68 @@ class App extends Component {
       const fallback = () => this.setState({ copyText: txt, copyMsg: 'Select the text below and copy it' });
       try { navigator.clipboard.writeText(txt).then(() => this.setState({ copyMsg: 'Copied — paste it into your notes', copyText: '' }), fallback); } catch (e) { fallback(); }
     };
+    const fileBase = slug(sess.name) + '-' + sess.date + (sess.postMortem ? '-post-mortem' : '');
+    const actualOf = it => it.actual != null ? String(Math.round(it.actual)) : '';
+    const reflected = REFLECT.filter(([f]) => refl[f] && refl[f].trim());
+    const mdCell = t => String(t || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+    const exportMd = () => {
+      const lines = [
+        '# ' + sess.name + (sess.postMortem ? ' — post-mortem' : ''),
+        '',
+        '- **Date:** ' + fmtDate(sess.date),
+        '- **Energy:** ' + items.map(it => it.v ? SPARK[it.v] : '·').join('') + (avg != null ? ' (avg ' + avg.toFixed(1) + '/5, ' + rated.length + ' of ' + n + ' blocks rated)' : ' (not rated)'),
+        overText ? '- **Timing:** ' + overText : null,
+        '',
+        '## Blocks',
+        '',
+        '| # | Time | Block | Planned | Actual | Energy | Note |',
+        '|---|---|---|---|---|---|---|',
+        ...items.map((it, i) => '| ' + (i + 1) + ' | ' + timeOf(it) + ' | ' + mdCell(it.title) + ' | ' + it.plan + ' min | ' + (actualOf(it) ? actualOf(it) + ' min' : '') + ' | ' + (it.v ? it.v + ' ' + LV[it.v].label : '') + ' | ' + mdCell(it.note) + ' |'),
+        lit.length ? '' : null, lit.length ? '## What lit up' : null, lit.length ? '' : null,
+        ...lit.map(h => '- ' + h.text + (h.note ? ' — ' + h.note : '')),
+        flat.length ? '' : null, flat.length ? '## What fell flat' : null, flat.length ? '' : null,
+        ...flat.map(h => '- ' + h.text + (h.note ? ' — ' + h.note : '')),
+        ...reflected.flatMap(([f, label]) => ['', '## ' + label, '', refl[f].trim()]),
+        '',
+      ].filter(l => l !== null);
+      downloadFile(fileBase + '.md', lines.join('\n'), 'text/markdown;charset=utf-8');
+      this.setState({ copyMsg: 'Markdown file downloaded' });
+    };
+    const exportCsv = () => {
+      const q = v => { const t = String(v ?? ''); return /[",\n;]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+      const rows = [['Workshop', 'Date', 'Block', 'Start', 'Title', 'Planned min', 'Actual min', 'Energy (1-5)', 'Energy label', 'Note'],
+        ...items.map((it, i) => [sess.name, sess.date, i + 1, timeOf(it), it.title, it.plan, actualOf(it), it.v || '', it.v ? LV[it.v].label : '', it.note || ''])];
+      reflected.forEach(([f, label]) => rows.push([sess.name, sess.date, '', '', label, '', '', '', '', refl[f].trim()]));
+      downloadFile(fileBase + '.csv', '\ufeff' + rows.map(r => r.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+      this.setState({ copyMsg: 'CSV file downloaded' });
+    };
+    const exportPdf = () => {
+      const W = 720, H = 220, X2 = i => 76 + (i + 0.5) * (W - 86) / n, Y2 = v => 16 + (5 - v) * ((H - 40) / 4);
+      let pl = '';
+      rated.forEach((it, k) => {
+        const x = X2(it.i), y = Y2(it.v);
+        if (!k) pl = 'M' + x + ' ' + y;
+        else { const p0 = rated[k - 1], x0 = X2(p0.i), y0 = Y2(p0.v), xm = (x0 + x) / 2; pl += ' C' + xm + ' ' + y0 + ' ' + xm + ' ' + y + ' ' + x + ' ' + y; }
+      });
+      const grid = [5, 4, 3, 2, 1].map(v => '<line x1="76" x2="' + W + '" y1="' + Y2(v) + '" y2="' + Y2(v) + '" stroke="#dcdcdc"/><text x="68" y="' + (Y2(v) + 4) + '" text-anchor="end" font-size="10" fill="#555">' + v + ' ' + LV[v].label + '</text>').join('');
+      const dots = rated.map(it => '<circle cx="' + X2(it.i) + '" cy="' + Y2(it.v) + '" r="7" fill="' + LV[it.v].color + '" stroke="#1f5f58" stroke-width="1.5"/>').join('');
+      const xl = items.map((it, i) => '<text x="' + X2(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="#333">' + (i + 1) + ' · ' + timeOf(it) + '</text>').join('');
+      const chart = rated.length ? '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Energy curve">' + grid + '<path d="' + pl + '" fill="none" stroke="#1f5f58" stroke-width="2.5"/>' + dots + xl + '</svg>' : '<p><em>No blocks rated.</em></p>';
+      const rowsHtml = items.map((it, i) => '<tr><td>' + (i + 1) + '</td><td>' + timeOf(it) + '</td><td>' + escHtml(it.title) + (it.note ? '<div class="note">' + escHtml(it.note) + '</div>' : '') + '</td><td>' + it.plan + '</td><td>' + (actualOf(it) || '–') + '</td><td>' + (it.v ? '<span class="chip" style="background:' + LV[it.v].color + ';color:' + LV[it.v].fg + '">' + it.v + ' ' + LV[it.v].label + '</span>' : '–') + '</td></tr>').join('');
+      const list = (title, arr) => arr.length ? '<h2>' + title + '</h2><ul>' + arr.map(h => '<li>' + escHtml(h.text) + (h.note ? ' — ' + escHtml(h.note) : '') + '</li>').join('') + '</ul>' : '';
+      const reflHtml = reflected.map(([f, label]) => '<h2>' + label + '</h2><p class="pre">' + escHtml(refl[f].trim()) + '</p>').join('');
+      const doc = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>' + escHtml(sess.name + ' — ' + fmtDate(sess.date)) + '</title>'
+        + '<style>body{font-family:Inter,system-ui,sans-serif;color:#1d2b2a;margin:32px;font-size:13px;line-height:1.5}h1{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:30px;margin:0 0 4px;color:#1f5f58}h2{font-size:15px;margin:22px 0 6px;color:#1f5f58}.sub{color:#555;margin:0 0 16px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e3e3e3;vertical-align:top}th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#555}.note{color:#555;font-size:12px}.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}.pre{white-space:pre-wrap}footer{margin-top:28px;color:#777;font-size:11px}@media print{body{margin:12mm}}</style></head><body>'
+        + '<h1>' + escHtml(sess.name) + (sess.postMortem ? ' — post-mortem' : '') + '</h1><p class="sub">' + escHtml(sub) + '</p>'
+        + chart + '<h2>Block by block</h2><table><thead><tr><th>#</th><th>Time</th><th>Block</th><th>Planned</th><th>Actual</th><th>Energy</th></tr></thead><tbody>' + rowsHtml + '</tbody></table>'
+        + list('What lit up', lit) + list('What fell flat', flat) + reflHtml
+        + '<footer>Made with the workshop timer · parts-work.dk</footer>'
+        + '<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>';
+      const w = window.open('', '_blank');
+      if (!w) { downloadFile(fileBase + '.html', doc, 'text/html;charset=utf-8'); this.setState({ copyMsg: 'Pop-up blocked, so the report was downloaded instead. Open it and print to PDF.' }); return; }
+      w.document.open(); w.document.write(doc); w.document.close();
+      this.setState({ copyMsg: 'Report opened. Choose “Save as PDF” in the print dialog.' });
+    };
     const highlights = (title, list, empty) => html`
       <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius-lg); background: var(--color-bg);">
         <span class="label">${title}</span>
@@ -1019,7 +1090,13 @@ class App extends Component {
                 <button class="btn" style="height: 36px; background: var(--color-accent-700); color: var(--color-on-accent); border: 2px solid var(--color-accent-700);" onClick=${() => this.setState(s => { const h = ((s.history || {})[wsId] || []).filter((_, k) => k !== +sel); return { history: { ...s.history, [wsId]: h }, review: { sel: 'live' }, copyText: '', copyMsg: '' }; })}>Yes, delete</button>
               </span>` : null}
             <span style="font-size: 14px; color: var(--color-accent-2-800); margin-left: auto;">${this.state.copyMsg}</span>
-            <button class="btn btn-ghost" onClick=${copy}>Copy summary</button>
+            <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 2px;" role="group" aria-label="Export this session">
+              <span class="muted" style="font-size: 13px; margin-right: 4px;">Export:</span>
+              <button class="btn btn-ghost" onClick=${copy}>Copy text</button>
+              <button class="btn btn-ghost" onClick=${exportMd} title="For Obsidian and other notes apps">Markdown</button>
+              <button class="btn btn-ghost" onClick=${exportCsv} title="For Excel or Google Sheets">CSV</button>
+              <button class="btn btn-ghost" onClick=${exportPdf} title="Opens a clean report to print or save as PDF">PDF / Print</button>
+            </span>
             <button class="btn btn-primary" onClick=${() => this.closeReview()}>Close</button>
           </div>
         </div>
