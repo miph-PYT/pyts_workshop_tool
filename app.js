@@ -7,17 +7,12 @@ import { html, render, Component } from './vendor/htm-preact.js';
 /* Example workshop shown on first visit                              */
 /* ------------------------------------------------------------------ */
 const SEED = [
-  { start: '13:00', min: 20, title: 'Communal landing and frame', note: 'Agreements, the thesis: build a scene to forget it' },
-  { start: '13:20', min: 35, title: 'Come. Stop. Stay.', note: 'Pretending to embodying, both sides, threshold and exit' },
-  { start: '13:55', min: 20, title: 'Transition: the flavour menu', note: 'Name the charge, open a kinkier headspace' },
-  { start: '14:15', min: 65, title: 'Scene builder', note: 'Why, What, Who, Where, How' },
-  { start: '15:20', min: 20, title: 'Break', note: 'Food, water, settle; lights stay low' },
-  { start: '15:40', min: 20, title: 'Compare and negotiate scene 1', note: 'Meet at the Why, agree on the How' },
-  { start: '16:00', min: 35, title: 'Scene 1: play 20, integrate 15', note: "Partner A's scene, planned" },
-  { start: '16:35', min: 10, title: 'Short break', note: 'Water, stretch, come back to yourself' },
-  { start: '16:45', min: 15, title: 'Negotiate scene 2', note: 'Apply what you learned, looser script' },
-  { start: '17:00', min: 35, title: 'Scene 2: play 20, integrate 15', note: "Partner B's scene, looser" },
-  { start: '17:35', min: 25, title: 'Debrief and communal closing', note: 'Refine, land, take one thing home' },
+  { start: '10:00', min: 20, title: 'Welcome and check-in', note: 'Arrive, introductions, intentions for the day' },
+  { start: '10:20', min: 30, title: 'Warm-up: move 10, pair share 20', note: 'Get into the body, then talk in pairs' },
+  { start: '10:50', min: 40, title: 'Main exercise', note: 'Introduce, demonstrate, practise' },
+  { start: '11:30', min: 15, title: 'Break', note: 'Water, fresh air' },
+  { start: '11:45', min: 35, title: 'Small groups: discuss 20, harvest 15', note: 'Reflect together, then share with everyone' },
+  { start: '12:20', min: 25, title: 'Closing circle', note: 'One thing to take home' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -116,7 +111,7 @@ const blocksToRows = blocks => blocks.map(b => newRow(b.min, b.title, b.note || 
 class App extends Component {
   constructor() {
     super();
-    const base = { mode: null, workshops: [{ id: 'w1', name: 'Scene workshop', blocks: SEED }], activeId: 'w1', runs: {}, history: {} };
+    const base = { mode: null, workshops: [{ id: 'w1', name: 'Example workshop', blocks: SEED }], activeId: 'w1', runs: {}, history: {} };
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
     this.state = { ...base, ...saved, editor: null, review: null, copyText: '', copyMsg: '', screen: 'menu', notice: '' };
@@ -856,7 +851,7 @@ class App extends Component {
                 </tbody>
               </table>
               <button class="btn btn-secondary" style="margin-top: var(--space-3);" onClick=${() => this.updEditor({ rows: [...ed.rows, newRow()] })}>+ Add block</button>
-              <p class="muted" style="margin: var(--space-2) 0 0; font-size: 13px;">Each block starts when the one before ends. Put breaks in as their own blocks. A title like “Scene 1: play 20, integrate 15” gets sub-timers.</p>
+              <p class="muted" style="margin: var(--space-2) 0 0; font-size: 13px;">Each block starts when the one before ends. Put breaks in as their own blocks. A title like “Small groups: discuss 20, harvest 15” gets sub-timers.</p>
             </div>` : html`
             <div class="field">
               <label for="ws-text">Schedule</label>

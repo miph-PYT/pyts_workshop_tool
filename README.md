@@ -12,7 +12,7 @@ It's plain HTML, CSS and JavaScript: no build step, no server, no accounts, no A
 - **Table**: set the start time, then add blocks with minutes, title and an optional note. Each block starts when the one before ends; ↑ ↓ reorder, ✕ removes. Put breaks in as their own blocks.
 - **Paste text**: paste a schedule straight from a doc (time range, minutes, title, note, one per line). Switch back to **Table** to check what was found.
 
-A title like `Scene 1: play 20, integrate 15` gets sub-timers inside the block (the numbers have to add up to the block's minutes). You can also paste a schedule anywhere on the menu to start a new workshop from it.
+A title like `Small groups: discuss 20, harvest 15` gets sub-timers inside the block (the numbers have to add up to the block's minutes). You can also paste a schedule anywhere on the menu to start a new workshop from it.
 
 **Two timing modes** (switch at the top of the timer):
 - **Facilitator**: you start, pause and move on yourself. Space = start/pause, ← → = previous/next block, +1 min extends the current block.

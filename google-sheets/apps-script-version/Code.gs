@@ -12,17 +12,12 @@ const PAL = {
   s100: '#f0fae1', s800: '#3d472b', n300: '#dcd3c4', n700: '#645c50',
 };
 const SEED = [
-  ['13:00', 20, 'Communal landing and frame', 'Agreements, the thesis: build a scene to forget it'],
-  ['13:20', 35, 'Come. Stop. Stay.', 'Pretending to embodying, both sides, threshold and exit'],
-  ['13:55', 20, 'Transition: the flavour menu', 'Name the charge, open a kinkier headspace'],
-  ['14:15', 65, 'Scene builder', 'Why, What, Who, Where, How'],
-  ['15:20', 20, 'Break', 'Food, water, settle; lights stay low'],
-  ['15:40', 20, 'Compare and negotiate scene 1', 'Meet at the Why, agree on the How'],
-  ['16:00', 35, 'Scene 1: play 20, integrate 15', "Partner A's scene, planned"],
-  ['16:35', 10, 'Short break', 'Water, stretch, come back to yourself'],
-  ['16:45', 15, 'Negotiate scene 2', 'Apply what you learned, looser script'],
-  ['17:00', 35, 'Scene 2: play 20, integrate 15', "Partner B's scene, looser"],
-  ['17:35', 25, 'Debrief and communal closing', 'Refine, land, take one thing home'],
+  ['10:00', 20, 'Welcome and check-in', 'Arrive, introductions, intentions for the day'],
+  ['10:20', 30, 'Warm-up: move 10, pair share 20', 'Get into the body, then talk in pairs'],
+  ['10:50', 40, 'Main exercise', 'Introduce, demonstrate, practise'],
+  ['11:30', 15, 'Break', 'Water, fresh air'],
+  ['11:45', 35, 'Small groups: discuss 20, harvest 15', 'Reflect together, then share with everyone'],
+  ['12:20', 25, 'Closing circle', 'One thing to take home'],
 ];
 
 function onOpen() {
@@ -108,7 +103,7 @@ function createFromText(name, text) {
 
 function addExample() {
   const blocks = SEED.map(r => { const [h, m] = r[0].split(':').map(Number); return { start: h * 60 + m, min: r[1], title: r[2], note: r[3], phases: phasesFor(r[2], r[1]) }; });
-  buildSheet_(newTab_('Scene workshop'), 'Scene workshop', blocks);
+  buildSheet_(newTab_('Example workshop'), 'Example workshop', blocks);
 }
 
 function newTab_(name) {
