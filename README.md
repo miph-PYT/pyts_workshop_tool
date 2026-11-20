@@ -27,6 +27,8 @@ A title like `Small groups: discuss 20, harvest 15` gets sub-timers inside the b
 
 **Energy curve.** Shows the curve over the blocks with start times, what lit up (4–5), what fell flat (1–2), planned vs actual minutes, and **Copy summary** for pasting into notes. **Save to history & start fresh** keeps the session for comparing later. A session is also saved automatically when you reset, or when you open a workshop on a new day.
 
+**Editing afterwards and post-mortems.** Every session stays editable: change ratings, notes, actual minutes and the date at any time, and fill in the reflection (What worked? / What would I change? / Notes for next time). **Post-mortem** (on the workshop card, or **+ Post-mortem** in the energy curve) logs a workshop afterwards without having run the timer: pick the date, rate each block, note the minutes and reflect. A post-mortem left completely empty is removed when you close it.
+
 ## Your data
 
 Everything is stored in the browser's local storage, **on that device only**. Your workshops don't follow you to your phone, another computer or another browser, and clearing browser data or using a private window loses them. The menu page explains this to visitors in a "Saved on this device only" box.

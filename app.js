@@ -55,7 +55,7 @@ const LV = [null,
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
 const C = 703.7; // ring circumference
-const EMPTY_RUN = { idx: 0, acc: 0, startedAt: null, extra: {}, actual: {}, began: {}, vibe: {}, notes: {}, clk: null, day: null };
+const EMPTY_RUN = { idx: 0, acc: 0, startedAt: null, extra: {}, actual: {}, began: {}, vibe: {}, notes: {}, clk: null, day: null, reflection: {} };
 const SPARK = ['', '▁', '▂', '▄', '▆', '█'];
 const PLOT_Y = v => 24 + (5 - v) * 48;
 const toMin = s => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
@@ -66,7 +66,14 @@ const today = () => { const d = new Date(); return d.getFullYear() + '-' + Strin
 const fmtDate = s => { try { return new Date(s + 'T12:00:00').toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return s; } };
 const nowMinutes = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60 + n.getMilliseconds() / 60000; };
 const freshClk = () => ({ day: today(), shift: 0, extra: {} });
-const hasRatings = r => r && (Object.keys(r.vibe || {}).length > 0 || Object.values(r.notes || {}).some(x => x && x.trim()));
+const hasText = o => Object.values(o || {}).some(x => x && String(x).trim());
+const hasRatings = r => r && (Object.keys(r.vibe || {}).length > 0 || hasText(r.notes) || hasText(r.reflection));
+const sessionHasContent = h => h && (h.items.some(it => it.v || (it.note && it.note.trim()) || (h.postMortem && it.actual != null)) || hasText(h.reflection));
+const REFLECT = [
+  ['worked', 'What worked?', 'Moments that landed, exercises to keep'],
+  ['change', 'What would I change?', 'Timing, order, instructions, energy dips'],
+  ['next', 'Notes for next time', 'Prep, materials, things to try'],
+];
 let rowKey = 1;
 const newRow = (min = 15, title = '', note = '') => ({ k: rowKey++, min: String(min), title, note });
 
@@ -284,7 +291,7 @@ class App extends Component {
       }
       return { title: b.title, start: b.start, at, plan: b.min, actual, running, v: (run.vibe || {})[i] || null, note: (run.notes || {})[i] || '' };
     });
-    return { id: 's' + Date.now(), date: run.day || today(), name: ws.name, items };
+    return { id: 's' + Date.now(), date: run.day || today(), name: ws.name, items, reflection: { ...(run.reflection || {}) } };
   }
   liveSession() {
     const B = this.blocks(), snap = this.snapshot(B);
@@ -314,7 +321,41 @@ class App extends Component {
     }
     if (changed) this.setState({ runs, history });
   }
-  closeReview() { this.setState({ review: null, copyText: '', copyMsg: '' }); }
+  closeReview() { this.dropEmptyDraft(); this.setState({ review: null, copyText: '', copyMsg: '' }); }
+  /* A post-mortem that was opened but never filled in is removed again */
+  dropEmptyDraft() {
+    const rv = this.state.review;
+    if (!rv || !rv.draft) return;
+    this.setState(s => {
+      const wsId = this.ws().id, list = ((s.history || {})[wsId] || []);
+      const k = list.findIndex(h => h.id === rv.draft);
+      if (k < 0 || sessionHasContent(list[k])) return null;
+      return { history: { ...s.history, [wsId]: list.filter((_, j) => j !== k) } };
+    });
+  }
+  updHist(k, fn) {
+    this.setState(s => {
+      const wsId = this.ws().id, list = [...((s.history || {})[wsId] || [])];
+      if (!list[k]) return null;
+      list[k] = fn(list[k]);
+      return { history: { ...s.history, [wsId]: list } };
+    });
+  }
+  updHistItem(k, i, patch) { this.updHist(k, h => ({ ...h, items: h.items.map((it, j) => j === i ? { ...it, ...patch } : it) })); }
+  setReflection(sel, field, text) {
+    if (sel === 'live') this.setRun(r => ({ reflection: { ...(r.reflection || {}), [field]: text }, day: r.day || today() }));
+    else this.updHist(+sel, h => ({ ...h, reflection: { ...(h.reflection || {}), [field]: text } }));
+  }
+  /* Post-mortem: log a session afterwards, without having run the timer */
+  newPostMortem(wsId) {
+    const w = this.state.workshops.find(x => x.id === wsId);
+    if (!w) return;
+    this.dropEmptyDraft();
+    const id = 's' + Date.now();
+    const sess = { id, date: today(), name: w.name, postMortem: true, reflection: {},
+      items: w.blocks.map(b => ({ title: b.title, start: b.start, at: null, plan: b.min, actual: null, v: null, note: '' })) };
+    this.setState(s => ({ activeId: wsId, history: { ...s.history, [wsId]: [sess, ...((s.history || {})[wsId] || [])].slice(0, 50) }, review: { sel: '0', draft: id }, copyText: '', copyMsg: '' }));
+  }
 
   /* ---- Backup / restore ---- */
   backup() {
@@ -494,7 +535,7 @@ class App extends Component {
               ['1', 'Plan', 'Tap New workshop and add your blocks in a simple table: minutes, a title and a note. Or paste a schedule straight from your doc. Breaks are blocks too.'],
               ['2', 'Run', 'Open a workshop and pick how to keep time. Facilitator: you start, pause and move on yourself. Follow clock: blocks follow the time of day, and you can stretch a block, move on early or catch up when things run long.'],
               ['3', 'Sense the room', 'Whenever you feel the energy shift, tap 1–5, from Flat to Alive, and add a quick note if something stands out.'],
-              ['4', 'Look back', 'The energy curve shows how the workshop flowed: what lit up, what fell flat and how the timing compared to the plan. Copy the summary into your notes.'],
+              ['4', 'Look back', 'The energy curve shows how the workshop flowed: what lit up, what fell flat and how the timing compared to the plan. You can rate blocks and add reflections afterwards too. Forgot to rate during the day? Use Post-mortem.'],
             ].map(([n, t, d]) => html`
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 <span style="display: flex; align-items: center; gap: var(--space-2);">
@@ -545,6 +586,7 @@ class App extends Component {
                   <button class="btn btn-ghost" style="height: 48px; color: var(--color-accent-700);" aria-label=${'Delete ' + w.name} onClick=${() => this.setState({ confirmDelete: w.id })}>Delete</button>
                   <button class="btn btn-ghost" style="height: 48px;" aria-label=${'Edit ' + w.name} onClick=${() => this.openEditor(w)}>Edit</button>
                   <button class="btn btn-ghost" style="height: 48px;" aria-label=${'Duplicate ' + w.name} onClick=${() => this.duplicateWorkshop(w)}>Duplicate</button>
+                  <button class="btn btn-ghost" style="height: 48px;" aria-label=${'Post-mortem for ' + w.name} title="Rate and reflect on a workshop afterwards" onClick=${() => this.newPostMortem(w.id)}>Post-mortem</button>
                   ${h.length ? html`<button class="btn btn-ghost" style="height: 48px;" aria-label=${'Energy curves for ' + w.name} onClick=${() => this.setState({ activeId: w.id, review: { sel: '0' }, copyText: '', copyMsg: '' })}>Energy curves</button>` : null}
                   <button class="btn btn-primary" style="min-width: 120px; height: 48px; font-size: 16px;" aria-label=${'Open ' + w.name} onClick=${open}>${inProgress ? 'Resume' : 'Open'}</button>
                 </div>`}
@@ -809,8 +851,12 @@ class App extends Component {
     const wsId = this.ws().id;
     const hist = (this.state.history || {})[wsId] || [];
     const sel = rv.sel === 'live' || !hist[+rv.sel] ? 'live' : rv.sel;
-    const editable = sel === 'live';
-    const sess = editable ? this.liveSession() : hist[+sel];
+    const isLive = sel === 'live';
+    const sess = isLive ? this.liveSession() : hist[+sel];
+    const refl = sess.reflection || {};
+    const setV = (i, v) => isLive ? this.rate(i, v) : this.updHistItem(+sel, i, { v });
+    const setNote = (i, t) => isLive ? this.setNoteAt(i, t) : this.updHistItem(+sel, i, { note: t });
+    const pickSession = v => { this.dropEmptyDraft(); this.setState({ review: { sel: v }, copyText: '', copyMsg: '' }); };
     const items = sess.items, n = items.length;
     const rated = items.map((it, i) => ({ ...it, i })).filter(it => it.v);
     const avgOf = its => { const r = its.filter(x => x.v); return r.length ? r.reduce((a, x) => a + x.v, 0) / r.length : null; };
@@ -846,6 +892,7 @@ class App extends Component {
       overText ? 'Timing: ' + overText : null,
       '',
       ...items.map((it, i) => (i + 1) + '. ' + timeOf(it) + ' ' + it.title + ' — ' + (it.v ? it.v + '/5 ' + LV[it.v].label : 'not rated') + ' · ' + timingOf(it) + (it.note ? ' — ' + it.note : '')),
+      ...REFLECT.filter(([f]) => refl[f] && refl[f].trim()).flatMap(([f, label]) => ['', label, refl[f].trim()]),
     ].filter(l => l !== null).join('\n');
     const copy = () => {
       const txt = summary();
@@ -866,13 +913,22 @@ class App extends Component {
       <div class="dialog-backdrop" style="z-index: 50; padding: var(--space-6);" onClick=${() => this.closeReview()}>
         <div class="dialog" role="dialog" aria-modal="true" aria-label="Energy curve" onClick=${e => e.stopPropagation()} style="width: 100%; max-width: 900px; max-height: calc(100vh - 48px); overflow: auto; gap: var(--space-4); padding: var(--space-6);">
           <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3);">
-            <h2 class="dialog-title" style="margin: 0;">Energy curve</h2>
-            <select class="input" aria-label="Session" value=${sel} onChange=${e => this.setState({ review: { sel: e.target.value }, copyText: '', copyMsg: '' })} style="width: auto; max-width: 100%; height: 40px;">
-              <option value="live">Current session</option>
-              ${hist.map((h, k) => { const a = avgOf(h.items); return html`<option value=${String(k)}>${fmtDate(h.date) + (a != null ? ' · avg ' + a.toFixed(1) : '')}</option>`; })}
-            </select>
+            <h2 class="dialog-title" style="margin: 0;">${sess.postMortem ? 'Post-mortem' : 'Energy curve'}</h2>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);">
+              <select class="input" aria-label="Session" value=${sel} onChange=${e => pickSession(e.target.value)} style="width: auto; max-width: 100%; height: 40px;">
+                <option value="live">Current session</option>
+                ${hist.map((h, k) => { const a = avgOf(h.items); return html`<option value=${String(k)}>${fmtDate(h.date) + (h.postMortem ? ' · post-mortem' : '') + (a != null ? ' · avg ' + a.toFixed(1) : '')}</option>`; })}
+              </select>
+              <button class="btn btn-secondary" style="height: 40px;" onClick=${() => this.newPostMortem(wsId)}>+ Post-mortem</button>
+            </div>
           </div>
           <p class="muted" style="margin: 0; font-size: 15px;">${sub}</p>
+          ${!isLive ? html`
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); font-size: 14px;">
+              <label for="sess-date" class="muted">Date of this session</label>
+              <input id="sess-date" class="input" type="date" value=${sess.date} onInput=${e => e.target.value && this.updHist(+sel, h => ({ ...h, date: e.target.value }))} style="width: auto; height: 38px;" />
+              <span class="muted">${sess.postMortem ? 'Logged afterwards. Rate each block below to draw the curve.' : 'Saved session. You can still change ratings, notes and minutes.'}</span>
+            </div>` : null}
 
           ${rated.length ? html`
             <div style="display: flex; flex-direction: column; gap: var(--space-2);">
@@ -900,7 +956,9 @@ class App extends Component {
                   </span>`)}
               </div>
             </div>` : html`
-            <p style="margin: 0; padding: var(--space-6); border-radius: var(--radius-lg); background: var(--color-bg); font-size: 15px;">No ratings yet. During the workshop, tap 1–5 under “How’s the room?” (or press 1–5 on the keyboard) whenever you sense the vibe — the curve builds itself.</p>`}
+            <p style="margin: 0; padding: var(--space-6); border-radius: var(--radius-lg); background: var(--color-bg); font-size: 15px;">${isLive
+              ? 'No ratings yet. During the workshop, tap 1–5 under “How’s the room?” (or press 1–5 on the keyboard), or rate the blocks below afterwards. The curve builds itself.'
+              : 'No ratings yet. Pick a level for each block below and the curve builds itself.'}</p>`}
 
           <div style="display: flex; flex-wrap: wrap; gap: var(--space-4);">
             ${highlights('What lit up (4–5)', lit, 'Nothing rated 4–5 yet.')}
@@ -918,26 +976,48 @@ class App extends Component {
                 </span>
                 <span style="flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
                   <span style="font-size: 15px; font-weight: 600;">${it.title}</span>
-                  ${editable
-                    ? html`<input class="input" style="height: 36px; font-size: 14px;" aria-label=${'Note for ' + it.title} placeholder="Note" value=${it.note} onInput=${e => this.setNoteAt(i, e.target.value)} />`
-                    : it.note ? html`<span class="muted" style="font-size: 14px;">${it.note}</span>` : null}
+                  <input class="input" style="height: 36px; font-size: 14px;" aria-label=${'Note for ' + it.title} placeholder="Note" value=${it.note} onInput=${e => setNote(i, e.target.value)} />
                 </span>
-                <span style=${'flex: none; font-size: 14px; font-variant-numeric: tabular-nums; color: ' + (it.actual != null && !it.running && Math.abs(it.actual - it.plan) >= 3 ? 'var(--color-accent-700)' : 'var(--color-neutral-700)')}>${timingOf(it)}</span>
-                ${editable ? html`
-                  <select class="input" aria-label=${'Energy for ' + it.title} value=${it.v ? String(it.v) : ''} onChange=${e => this.rate(i, e.target.value ? +e.target.value : null)}
-                    style=${'width: 130px; height: 36px; font-size: 14px; border: 2px solid ' + (it.v ? LV[it.v].color : 'var(--color-neutral-300)')}>
-                    <option value="">Not rated</option>
-                    ${[5, 4, 3, 2, 1].map(v => html`<option value=${String(v)}>${v} · ${LV[v].label}</option>`)}
-                  </select>` : html`
-                  <span style=${'flex: none; min-width: 90px; text-align: center; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: ' + (it.v ? LV[it.v].color : 'var(--color-neutral-300)') + '; color: ' + (it.v ? LV[it.v].fg : 'var(--color-text)')}>${it.v ? it.v + ' · ' + LV[it.v].label : 'Not rated'}</span>`}
+                ${isLive ? html`
+                  <span style=${'flex: none; font-size: 14px; font-variant-numeric: tabular-nums; color: ' + (it.actual != null && !it.running && Math.abs(it.actual - it.plan) >= 3 ? 'var(--color-accent-700)' : 'var(--color-neutral-700)')}>${timingOf(it)}</span>` : html`
+                  <span class="muted" style="flex: none; display: flex; align-items: center; gap: 6px; font-size: 14px; font-variant-numeric: tabular-nums;">
+                    ${it.plan} →
+                    <input class="input" type="number" min="0" step="1" inputmode="numeric" aria-label=${'Actual minutes for ' + it.title} placeholder=${String(it.plan)}
+                      value=${it.actual != null ? String(Math.round(it.actual)) : ''} onInput=${e => this.updHistItem(+sel, i, { actual: e.target.value === '' ? null : Math.max(0, +e.target.value) })}
+                      style="width: 72px; height: 36px; font-size: 14px; padding-inline: 10px;" />
+                    min
+                  </span>`}
+                <select class="input" aria-label=${'Energy for ' + it.title} value=${it.v ? String(it.v) : ''} onChange=${e => setV(i, e.target.value ? +e.target.value : null)}
+                  style=${'width: 130px; height: 36px; font-size: 14px; border: 2px solid ' + (it.v ? LV[it.v].color : 'var(--color-neutral-300)')}>
+                  <option value="">Not rated</option>
+                  ${[5, 4, 3, 2, 1].map(v => html`<option value=${String(v)}>${v} · ${LV[v].label}</option>`)}
+                </select>
               </div>`)}
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <span class="label">Reflection</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3);">
+              ${REFLECT.map(([f, label, ph]) => html`
+                <div class="field">
+                  <label for=${'refl-' + f}>${label}</label>
+                  <textarea id=${'refl-' + f} class="input" placeholder=${ph} value=${refl[f] || ''} onInput=${e => this.setReflection(sel, f, e.target.value)}
+                    style="min-height: 96px; border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: 14px; line-height: 1.45;"></textarea>
+                </div>`)}
+            </div>
           </div>
 
           ${this.state.copyText ? html`<textarea class="input" aria-label="Summary to copy" readonly value=${this.state.copyText} style="min-height: 160px; border-radius: var(--radius-lg); padding: var(--space-3); font-size: 14px; line-height: 1.4;"></textarea>` : null}
 
           <div class="dialog-actions" style="flex-wrap: wrap; align-items: center; gap: var(--space-3);">
-            ${editable && hasRatings(this.run()) ? html`<button class="btn btn-secondary" onClick=${() => { this.saveAndClear(); this.setState({ review: { sel: '0' }, copyText: '', copyMsg: 'Saved to history' }); }}>Save to history & start fresh</button>` : null}
-            ${!editable ? html`<button class="btn btn-ghost" style="color: var(--color-accent-700);" onClick=${() => this.setState(s => { const h = ((s.history || {})[wsId] || []).filter((_, k) => k !== +sel); return { history: { ...s.history, [wsId]: h }, review: { sel: 'live' }, copyText: '', copyMsg: '' }; })}>Delete this session</button>` : null}
+            ${isLive && hasRatings(this.run()) ? html`<button class="btn btn-secondary" onClick=${() => { this.saveAndClear(); this.setState({ review: { sel: '0' }, copyText: '', copyMsg: 'Saved to history' }); }}>Save to history & start fresh</button>` : null}
+            ${!isLive && !rv.confirmDel ? html`<button class="btn btn-ghost" style="color: var(--color-accent-700);" onClick=${() => this.setState({ review: { ...rv, confirmDel: true } })}>Delete this session</button>` : null}
+            ${!isLive && rv.confirmDel ? html`
+              <span role="alert" style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: 6px 6px 6px 14px; border-radius: 999px; background: var(--color-accent-100); color: var(--color-accent-800); font-size: 14px;">
+                Delete this session?
+                <button class="btn btn-secondary" style="height: 36px;" onClick=${() => this.setState({ review: { ...rv, confirmDel: false } })}>Cancel</button>
+                <button class="btn" style="height: 36px; background: var(--color-accent-700); color: var(--color-on-accent); border: 2px solid var(--color-accent-700);" onClick=${() => this.setState(s => { const h = ((s.history || {})[wsId] || []).filter((_, k) => k !== +sel); return { history: { ...s.history, [wsId]: h }, review: { sel: 'live' }, copyText: '', copyMsg: '' }; })}>Yes, delete</button>
+              </span>` : null}
             <span style="font-size: 14px; color: var(--color-accent-2-800); margin-left: auto;">${this.state.copyMsg}</span>
             <button class="btn btn-ghost" onClick=${copy}>Copy summary</button>
             <button class="btn btn-primary" onClick=${() => this.closeReview()}>Close</button>
